@@ -55,8 +55,6 @@ int main(int argc, char **argv) {
   your_gaussian_blur(h_inputImageRGBA, d_inputImageRGBA, d_outputImageRGBA, numRows(), numCols(), filterWidth);
   timer.Stop();
   cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
-
-  std::cout<<"\n";
   int err = printf("%f msecs.\n", timer.Elapsed());
 
   if (err < 0) {
