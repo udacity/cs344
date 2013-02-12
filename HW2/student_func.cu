@@ -187,7 +187,6 @@ void recombineChannels(const unsigned char* const redChannel,
 }
 
 unsigned char *d_red, *d_green, *d_blue;
-unsigned char *d_redBlurred, *d_greenBlurred, *d_blueBlurred;
 float         *d_filter;
 
 void allocateMemoryAndCopyToGPU(const size_t numRowsImage, const size_t numColsImage,
@@ -199,11 +198,6 @@ void allocateMemoryAndCopyToGPU(const size_t numRowsImage, const size_t numColsI
   checkCudaErrors(cudaMalloc(&d_red,   sizeof(unsigned char) * numRowsImage * numColsImage));
   checkCudaErrors(cudaMalloc(&d_green, sizeof(unsigned char) * numRowsImage * numColsImage));
   checkCudaErrors(cudaMalloc(&d_blue,  sizeof(unsigned char) * numRowsImage * numColsImage));
-
-  //blurred
-  checkCudaErrors(cudaMalloc(&d_redBlurred,   sizeof(unsigned char) * numRowsImage * numColsImage));
-  checkCudaErrors(cudaMalloc(&d_greenBlurred, sizeof(unsigned char) * numRowsImage * numColsImage));
-  checkCudaErrors(cudaMalloc(&d_blueBlurred,  sizeof(unsigned char) * numRowsImage * numColsImage));
 
   //TODO:
   //Allocate memory for the filter on the GPU
@@ -222,6 +216,9 @@ void allocateMemoryAndCopyToGPU(const size_t numRowsImage, const size_t numColsI
 
 void your_gaussian_blur(const uchar4 * const h_inputImageRGBA, uchar4 * const d_inputImageRGBA,
                         uchar4* const d_outputImageRGBA, const size_t numRows, const size_t numCols,
+                        unsigned char *d_redBlurred, 
+                        unsigned char *d_greenBlurred, 
+                        unsigned char *d_blueBlurred,
                         const int filterWidth)
 {
   //TODO: Set reasonable block size (i.e., number of threads per block)
@@ -292,9 +289,6 @@ void your_gaussian_blur(const uchar4 * const h_inputImageRGBA, uchar4 * const d_
 //TODO: make sure you free any arrays that you allocated
 void cleanup() {
   checkCudaErrors(cudaFree(d_red));
-  checkCudaErrors(cudaFree(d_redBlurred));
   checkCudaErrors(cudaFree(d_green));
-  checkCudaErrors(cudaFree(d_greenBlurred));
   checkCudaErrors(cudaFree(d_blue));
-  checkCudaErrors(cudaFree(d_blueBlurred));
 }
