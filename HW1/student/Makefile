@@ -1,5 +1,11 @@
 NVCC=nvcc
 
+###################################################
+# On Macs when using the NVIDA cuda installer     #
+###################################################
+#NVCC=/Developer/NVIDIA/CUDA-5.0/bin/nvcc
+
+
 ###################################
 # These are the default install   #
 # locations on most linux distros #
@@ -36,6 +42,14 @@ CUDA_INCLUDEPATH=/usr/local/cuda-5.0/include
 #CUDA_INCLUDEPATH=/usr/local/cuda/include
 #CUDA_LIBPATH=/usr/local/cuda/lib
 
+# or if using the NVIDA Installer
+
+#CUDA_INCLUDEPATH=/usr/local/cuda/include
+#CUDA_LIBPATH=/usr/local/cuda/lib
+
+#CUDA_INCLUDEPATH=/Developer/NVIDIA/CUDA-5.0/include/
+#CUDA_LIBPATH=/Developer/NVIDIA/CUDA-5.0/include/lib
+
 NVCC_OPTS=-O3 -arch=sm_20 -Xcompiler -Wall -Xcompiler -Wextra -m64
 
 GCC_OPTS=-O3 -Wall -Wextra -m64
@@ -47,7 +61,7 @@ main.o: main.cpp timer.h utils.h HW1.cpp
 	g++ -c main.cpp $(GCC_OPTS) -I $(CUDA_INCLUDEPATH) -I $(OPENCV_LIBPATH)
 
 student_func.o: student_func.cu reference_calc.cpp utils.h
-	nvcc -c student_func.cu $(NVCC_OPTS)
+	$(NVCC) -c student_func.cu $(NVCC_OPTS)
 
 compare: compare.cpp utils.h Makefile
 	g++ -o compare compare.cpp -I $(OPENCV_INCLUDEPATH) -L $(OPENCV_LIBPATH) $(OPENCV_LIBS) $(GCC_OPTS) -I $(CUDA_INCLUDEPATH)
