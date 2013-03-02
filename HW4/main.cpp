@@ -53,8 +53,8 @@ int main(int argc, char **argv) {
 
   timer.Stop();
   cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
-  printf('\n');
-  int err = printf("e57__TIMING__f82 %f msecs.\n", timer.Elapsed());
+  printf("\n");
+  int err = printf("%f msecs.\n", timer.Elapsed());
 
   if (err < 0) {
     //Couldn't print! Probably the student closed stdout - bad news
