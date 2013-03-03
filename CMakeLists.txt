@@ -1,8 +1,8 @@
 ############################################################################
 # <summary> CMakeLists.txt for OpenCV and CUDA. </summary>
 # <date>    2012-02-07          </date>
-# <author>  Quan Tran Minh. edit by Johannes Kast </author>
-# <email>   quantm@unist.ac.kr  kast.jo@googlemail.com</email>
+# <author>  Quan Tran Minh. edit by Johannes Kast, Michael Sarahan </author>
+# <email>   quantm@unist.ac.kr  kast.jo@googlemail.com msarahan@gmail.com</email>
 ############################################################################
 
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
@@ -10,8 +10,6 @@ project(cs344)
 
 find_package(OpenCV REQUIRED)
 find_package(CUDA REQUIRED)
-
-#message("CMAKE_SIZEOF_VOID_P = ${CMAKE_SIZEOF_VOID_P}")
 
 link_libraries(${OpenCV_LIBS} )
 
