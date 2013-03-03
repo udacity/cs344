@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
 
   timer.Stop();
   cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
-  printf('\n');
+  printf("\n");
   int err = printf("e57__TIMING__f82 %f msecs.\n", timer.Elapsed());
 
   if (err < 0) {
