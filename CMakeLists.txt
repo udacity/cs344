@@ -16,7 +16,15 @@ find_package(CUDA REQUIRED)
 link_libraries(${OpenCV_LIBS} )
 
 if(CUDA_FOUND)
-    set(CUDA_NVCC_FLAGS "-arch;sm_20;-Xptxas;-v")
+    # compared to class settings, we let NVidia's FindCUDA CMake detect 
+    # whether to build x64.  We tell it to support most devices, though, 
+    # to make sure more people can easily run class code without knowing 
+    # about this compiler argument
+    set(CUDA_NVCC_FLAGS "-Xcompiler -Wall; -Xcompiler -Wextra;
+			    -gencode;arch=compute_20,code=sm_20; 
+			    -gencode;arch=compute_11,code=sm_11; 
+			    -gencode;arch=compute_12,code=sm_12;
+			    -gencode;arch=compute_13,code=sm_13;")
     add_subdirectory (HW1/student)
     add_subdirectory (HW2)
     add_subdirectory (HW3)
