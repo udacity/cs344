@@ -1,0 +1,131 @@
+From ae1b011ef17c38cd0e8ea03396ba9f536573d113 Mon Sep 17 00:00:00 2001
+From: Johannes Kast <kast.jo@googlemail.com>
+Date: Thu, 14 Feb 2013 10:00:54 +0100
+Subject: [PATCH 12/12] Added CMake and Win Environment
+
+---
+ CMakeLists.txt                 | 20 ++++++++++++++++++++
+ HW1/student/CMakeLists.txt     | 27 +++++++++++++++++++++++++++
+ HW2/CMakeLists.txt             | 27 +++++++++++++++++++++++++++
+ Win_Environment_EDIT_FIRST.bat | 11 +++++++++++
+ 4 files changed, 85 insertions(+)
+ create mode 100644 CMakeLists.txt
+ create mode 100644 HW1/student/CMakeLists.txt
+ create mode 100644 HW2/CMakeLists.txt
+ create mode 100644 Win_Environment_EDIT_FIRST.bat
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+new file mode 100644
+index 0000000..85b2c2c
+--- /dev/null
++++ b/CMakeLists.txt
+@@ -0,0 +1,20 @@
++############################################################################
++# <summary> CMakeLists.txt for OpenCV and CUDA. </summary>
++# <date>    2012-02-07          </date>
++# <author>  Quan Tran Minh. edit by Johannes Kast </author>
++# <email>   quantm@unist.ac.kr  kast.jo@googlemail.com</email>
++############################################################################
++
++cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
++project(cs344)
++
++find_package(OpenCV REQUIRED)
++find_package(CUDA REQUIRED)
++
++
++if(CUDA_FOUND)
++    add_subdirectory (HW1/student)
++	add_subdirectory (HW2)
++else(CUDA_FOUND)
++    message("CUDA is not installed on this system.")
++endif()
+\ No newline at end of file
+diff --git a/HW1/student/CMakeLists.txt b/HW1/student/CMakeLists.txt
+new file mode 100644
+index 0000000..efd56dd
+--- /dev/null
++++ b/HW1/student/CMakeLists.txt
+@@ -0,0 +1,27 @@
++############################################################################
++# <summary> CMakeLists.txt for OpenCV and CUDA. </summary>
++# <date>    2012-02-07          </date>
++# <author>  Quan Tran Minh. edit by Johannes Kast </author>
++# <email>   quantm@unist.ac.kr  kast.jo@googlemail.com</email>
++############################################################################
++
++
++if(CUDA_FOUND)
++    set(CUDA_NVCC_FLAGS "-arch;sm_20;-Xptxas;-v")
++    # collect source files
++
++	SET (compare_files compare.cpp)
++	
++    file( GLOB  hdr *.hpp *.h )
++    file( GLOB  cu  *.cu)
++	SET (HW1_files main.cpp)
++    
++	link_libraries(HW1 ${OpenCV_LIBS})
++    CUDA_ADD_EXECUTABLE(HW1 ${HW1_files} ${hdr} ${img} ${cu})
++    CUDA_ADD_CUFFT_TO_TARGET(HW1)
++    CUDA_ADD_CUBLAS_TO_TARGET(HW1)
++
++	add_executable(hw1_compare ${compare_files})
++else(CUDA_FOUND)
++    message("CUDA is not installed on this system.")
++endif()
+\ No newline at end of file
+diff --git a/HW2/CMakeLists.txt b/HW2/CMakeLists.txt
+new file mode 100644
+index 0000000..d54e234
+--- /dev/null
++++ b/HW2/CMakeLists.txt
+@@ -0,0 +1,27 @@
++############################################################################
++# <summary> CMakeLists.txt for OpenCV and CUDA. </summary>
++# <date>    2012-02-07          </date>
++# <author>  Quan Tran Minh. edit by Johannes Kast </author>
++# <email>   quantm@unist.ac.kr  kast.jo@googlemail.com</email>
++############################################################################
++
++
++if(CUDA_FOUND)
++    set(CUDA_NVCC_FLAGS "-arch;sm_20;-Xptxas;-v")
++    # collect source files
++
++	SET (compare_files compare.cpp)
++	
++    file( GLOB  hdr *.hpp *.h )
++    file( GLOB  cu  *.cu)
++	SET (HW2_files main.cpp)
++    
++	link_libraries(HW2 ${OpenCV_LIBS})
++    CUDA_ADD_EXECUTABLE(HW2 ${HW2_files} ${hdr} ${img} ${cu})
++    CUDA_ADD_CUFFT_TO_TARGET(HW2)
++    CUDA_ADD_CUBLAS_TO_TARGET(HW2)
++
++	add_executable(hw2_compare ${compare_files})
++else(CUDA_FOUND)
++    message("CUDA is not installed on this system.")
++endif()
+\ No newline at end of file
+diff --git a/Win_Environment_EDIT_FIRST.bat b/Win_Environment_EDIT_FIRST.bat
+new file mode 100644
+index 0000000..b86ad08
+--- /dev/null
++++ b/Win_Environment_EDIT_FIRST.bat
+@@ -0,0 +1,11 @@
++SET OPENCV_DIR=I:\Projekte\OpenCV\opencv_bin\bin\Release
++SET OPENCV_DEBUG_DIR=I:\Projekte\OpenCV\opencv_bin\bin\Debug
++SET HW_DIR=I:\Projekte\CUDA\Udacity GIT\cs344_bin\HW1\student\Release
++
++PATH=%OPENCV_DIR%;%OPENCV_DEBUG_DIR%;%PATH%
++
++call "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\vcvarsall.bat x64"
++
++cd /D %HW_DIR%
++rem call HW1.sln
++cmd
+-- 
+1.7.11.msysgit.1
+
