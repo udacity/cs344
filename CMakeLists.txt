@@ -18,11 +18,17 @@ if(CUDA_FOUND)
     # whether to build x64.  We tell it to support most devices, though, 
     # to make sure more people can easily run class code without knowing 
     # about this compiler argument
-    set(CUDA_NVCC_FLAGS "-Xcompiler -Wall; -Xcompiler -Wextra;
+    set(CUDA_NVCC_FLAGS "-Xcompiler -Wall; 
 			    -gencode;arch=compute_20,code=sm_20; 
 			    -gencode;arch=compute_11,code=sm_11; 
 			    -gencode;arch=compute_12,code=sm_12;
 			    -gencode;arch=compute_13,code=sm_13;")
+
+    # add -Wextra compiler flag for gcc compilations
+    if (UNIX)
+	set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-Xcompiler -Wextra")
+    endif (UNIX)
+
     add_subdirectory (HW1/student)
     add_subdirectory (HW2)
     add_subdirectory (HW3)
