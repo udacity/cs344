@@ -15,5 +15,5 @@ SET (HW4_files main.cpp loadSaveImage.cpp)
 
 CUDA_ADD_EXECUTABLE(HW4 ${HW4_files} ${hdr} ${img} ${cu})
 
-CUDA_ADD_EXECUTABLE(hw4_compare ${compare_files})
+ADD_EXECUTABLE(hw4_compare ${compare_files})
 

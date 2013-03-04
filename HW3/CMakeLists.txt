@@ -13,5 +13,5 @@ SET (HW3_files main.cpp loadSaveImage.cpp)
     
 CUDA_ADD_EXECUTABLE(HW3 ${HW3_files} ${hdr} ${img} ${cu})
 
-CUDA_ADD_EXECUTABLE(hw3_compare ${compare_files} )
+ADD_EXECUTABLE(hw3_compare ${compare_files} )
 #link_libraries(hw3_compare HW3)
