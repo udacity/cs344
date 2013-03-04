@@ -14,7 +14,5 @@ file( GLOB  cu  *.cu)
 SET (HW2_files main.cpp)
     
 CUDA_ADD_EXECUTABLE(HW2 ${HW2_files} ${hdr} ${img} ${cu})
-CUDA_ADD_CUFFT_TO_TARGET(HW2)
-CUDA_ADD_CUBLAS_TO_TARGET(HW2)
 
 add_executable(hw2_compare ${compare_files})

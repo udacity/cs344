@@ -14,8 +14,6 @@ file( GLOB  cu  *.cu)
 SET (HW4_files main.cpp loadSaveImage.cpp)
 
 CUDA_ADD_EXECUTABLE(HW4 ${HW4_files} ${hdr} ${img} ${cu})
-CUDA_ADD_CUFFT_TO_TARGET(HW4)
-CUDA_ADD_CUBLAS_TO_TARGET(HW4)
 
-add_executable(hw4_compare ${compare_files} ${hdr} ${img} ${cu})
-link_libraries(hw4_compare HW4)
+CUDA_ADD_EXECUTABLE(hw4_compare ${compare_files})
+

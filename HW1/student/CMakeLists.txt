@@ -15,7 +15,5 @@ SET (HW1_files main.cpp)
     
     
 CUDA_ADD_EXECUTABLE(HW1 ${HW1_files} ${hdr} ${img} ${cu})
-CUDA_ADD_CUFFT_TO_TARGET(HW1)
-CUDA_ADD_CUBLAS_TO_TARGET(HW1)
 
 add_executable(hw1_compare ${compare_files})
