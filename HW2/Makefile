@@ -38,8 +38,5 @@ main.o: main.cpp timer.h utils.h HW2.cpp
 student_func.o: student_func.cu reference_calc.cpp utils.h
 	nvcc -c student_func.cu $(NVCC_OPTS)
 
-compare: compare.cpp utils.h Makefile
-	g++ -o compare compare.cpp -I $(OPENCV_INCLUDEPATH) -L $(OPENCV_LIBPATH) $(OPENCV_LIBS) $(GCC_OPTS) -I $(CUDA_INCLUDEPATH)
-
 clean:
 	rm -f *.o *.png hw compare

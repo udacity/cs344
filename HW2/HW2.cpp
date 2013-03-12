@@ -103,6 +103,15 @@ void preProcess(uchar4 **h_inputImageRGBA, uchar4 **h_outputImageRGBA,
   checkCudaErrors(cudaMemset(*d_blueBlurred,  0, sizeof(unsigned char) * numPixels));
 }
 
+void generateReferenceImage(std::string input_file, std::string reference_file, int kernel_size)
+{
+	cv::Mat input = cv::imread(input_file);
+	// Create an identical image for the output as a placeholder
+	cv::Mat reference = cv::imread(input_file);
+	cv::GaussianBlur(input, reference, cv::Size2i(kernel_size, kernel_size),0);
+	cv::imwrite(reference_file, reference);
+}
+
 void postProcess(const std::string& output_file) {
   const int numPixels = numRows() * numCols();
   //copy the output back to the host
@@ -117,4 +126,41 @@ void postProcess(const std::string& output_file) {
   cudaFree(d_inputImageRGBA__);
   cudaFree(d_outputImageRGBA__);
   delete[] h_filter__;
+}
+
+void compareImages(std::string reference_filename, std::string test_filename, bool useEpsCheck,
+				   double perPixelError, double globalError)
+{
+  cv::Mat reference = cv::imread(reference_filename, -1);
+  cv::Mat test = cv::imread(test_filename, -1);
+
+  cv::Mat diff = abs(reference - test);
+
+  cv::Mat diffSingleChannel = diff.reshape(1, 0); //convert to 1 channel, same # rows
+
+  double minVal, maxVal;
+
+  cv::minMaxLoc(diffSingleChannel, &minVal, &maxVal, NULL, NULL); //NULL because we don't care about location
+
+  //now perform transform so that we bump values to the full range
+
+  diffSingleChannel = (diffSingleChannel - minVal) * (255. / (maxVal - minVal));
+
+  diff = diffSingleChannel.reshape(reference.channels(), 0);
+
+  cv::imwrite("differenceImage.png", diff);
+  //OK, now we can start comparing values...
+  unsigned char *referencePtr = reference.ptr<unsigned char>(0);
+  unsigned char *testPtr = test.ptr<unsigned char>(0);
+
+  if (useEpsCheck) {
+    checkResultsEps(referencePtr, testPtr, reference.rows * reference.cols * reference.channels(), perPixelError, globalError);
+  }
+  else
+  {
+    checkResultsExact(referencePtr, testPtr, reference.rows * reference.cols * reference.channels());
+  }
+
+  std::cout << "PASS" << std::endl;
+  return;
 }
