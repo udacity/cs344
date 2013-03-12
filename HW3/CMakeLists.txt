@@ -9,7 +9,7 @@ SET (compare_files compare.cpp)
 
 file( GLOB  hdr *.hpp *.h )
 file( GLOB  cu  *.cu)
-SET (HW3_files main.cpp loadSaveImage.cpp)
+SET (HW3_files main.cpp HW3.cpp loadSaveImage.cpp)
     
 CUDA_ADD_EXECUTABLE(HW3 ${HW3_files} ${hdr} ${img} ${cu})
 

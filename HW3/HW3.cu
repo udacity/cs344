@@ -1,7 +1,10 @@
 #include "utils.h"
 #include <string>
+#include <opencv2/opencv.hpp>
 #include "loadSaveImage.h"
 #include <thrust/extrema.h>
+
+#include "reference_calc.h"
 
 //chroma-LogLuminance Space
 static float *d_x__;
@@ -279,4 +282,13 @@ void postProcess(const std::string& output_file,
   checkCudaErrors(cudaFree(d_logY__));
   checkCudaErrors(cudaFree(d_cdf__));
   checkCudaErrors(cudaFree(d_cdf_normalized));
+}
+
+void generateReferenceImage(std::string reference_file, const float* const h_logLuminance, unsigned int* const h_cdf,
+                          const size_t numRows, const size_t numCols, const size_t numBins)
+{
+	float min_logLum=0.0f, max_logLum=1.0f;
+	referenceCalculation(h_logLuminance, h_cdf, numRows, numCols, numBins, min_logLum, max_logLum);
+	checkCudaErrors(cudaMemcpy(d_cdf__, h_cdf, sizeof(unsigned int) * numBins, cudaMemcpyHostToDevice));
+    postProcess(reference_file, numRows, numCols, min_logLum, max_logLum);
 }

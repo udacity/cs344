@@ -5,7 +5,11 @@
 #include "utils.h"
 #include <string>
 #include <stdio.h>
+#include <algorithm>
 
+#include "HW3.h"
+
+// Functions from HW3.cu
 void preProcess(float **d_luminance, unsigned int **d_cdf,
                 size_t *numRows, size_t *numCols, unsigned int *numBins,
                 const std::string& filename);
@@ -13,6 +17,10 @@ void preProcess(float **d_luminance, unsigned int **d_cdf,
 void postProcess(const std::string& output_file, size_t numRows, size_t numCols,
                  float min_logLum, float max_logLum);
 
+void generateReferenceImage(std::string reference_file, const float* const h_logLuminance, unsigned int* const h_cdf,
+                          const size_t numRows, const size_t numCols, const size_t numBins);
+
+// Function from student_func.cu
 void your_histogram_and_prefixsum(const float* const d_luminance,
                                   unsigned int* const d_cdf,
                                   float &min_logLum,
@@ -20,6 +28,7 @@ void your_histogram_and_prefixsum(const float* const d_luminance,
                                   const size_t numRows,
                                   const size_t numCols,
                                   const size_t numBins);
+
 
 int main(int argc, char **argv) {
   float *d_luminance;
@@ -30,13 +39,36 @@ int main(int argc, char **argv) {
 
   std::string input_file;
   std::string output_file;
-  if (argc == 3) {
-    input_file  = std::string(argv[1]);
-    output_file = std::string(argv[2]);
-  }
-  else {
-    std::cerr << "Usage: ./hw input_file output_file" << std::endl;
-    exit(1);
+  std::string reference_file;
+  double perPixelError = 0.0;
+  double globalError   = 0.0;
+  bool useEpsCheck = false;
+
+  switch (argc)
+  {
+	case 2:
+	  input_file = std::string(argv[1]);
+	  output_file = "HW3_output.png";
+	  reference_file = "HW3_reference.png";
+	  break;
+	case 3:
+	  input_file  = std::string(argv[1]);
+      output_file = std::string(argv[2]);
+	  reference_file = "HW3_reference.png";
+	  break;
+	case 4:
+	  input_file  = std::string(argv[1]);
+      output_file = std::string(argv[2]);
+	  reference_file = std::string(argv[3]);
+	  break;
+	case 6:
+	  useEpsCheck=true;
+	  perPixelError = atof(argv[4]);
+      globalError   = atof(argv[5]);
+	  break;
+	default:
+      std::cerr << "Usage: ./HW3 input_file [output_filename] [reference_filename] [perPixelError] [globalError]" << std::endl;
+      exit(1);
   }
   //load the image and give us our input and output pointers
   preProcess(&d_luminance, &d_cdf,
@@ -60,8 +92,20 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
+  float *h_luminance = (float *) malloc(sizeof(float)*numRows*numCols);
+  unsigned int *h_cdf = (unsigned int *) malloc(sizeof(unsigned int)*numBins);
+
+  checkCudaErrors(cudaMemcpy(h_luminance, d_luminance, numRows*numCols*sizeof(float), cudaMemcpyDeviceToHost));
+
   //check results and output the tone-mapped image
   postProcess(output_file, numRows, numCols, min_logLum, max_logLum);
+
+  for (size_t i = 1; i < numCols * numRows; ++i) {
+	min_logLum = std::min(h_luminance[i], min_logLum);
+    max_logLum = std::max(h_luminance[i], max_logLum);
+  }
+  generateReferenceImage(reference_file, h_luminance, h_cdf, numRows, numCols, numBins);
+  compareImages(reference_file, output_file, useEpsCheck, perPixelError, globalError);
 
   return 0;
 }
