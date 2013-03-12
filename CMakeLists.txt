@@ -13,6 +13,8 @@ find_package(CUDA REQUIRED)
 
 link_libraries(${OpenCV_LIBS} )
 
+set (EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/bin/")
+
 if(CUDA_FOUND)
     # compared to class settings, we let NVidia's FindCUDA CMake detect 
     # whether to build x64.  We tell it to support most devices, though, 
@@ -33,6 +35,7 @@ if(CUDA_FOUND)
     add_subdirectory (HW2)
     add_subdirectory (HW3)
     add_subdirectory (HW4)
+    add_subdirectory (HW5)
 else(CUDA_FOUND)
     message("CUDA is not installed on this system.")
 endif()
