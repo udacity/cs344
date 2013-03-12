@@ -27,13 +27,35 @@ int main(int argc, char **argv) {
 
   std::string input_file;
   std::string output_file;
-  if (argc == 3) {
-    input_file  = std::string(argv[1]);
-    output_file = std::string(argv[2]);
-  }
-  else {
-    std::cerr << "Usage: ./hw input_file output_file" << std::endl;
-    exit(1);
+  std::string reference_file;
+  double perPixelError = 0.0;
+  double globalError   = 0.0;
+  bool useEpsCheck = false;
+  switch (argc)
+  {
+	case 2:
+	  input_file = std::string(argv[1]);
+	  output_file = "output.png";
+	  reference_file = "reference.png";
+	  break;
+	case 3:
+	  input_file  = std::string(argv[1]);
+      output_file = std::string(argv[2]);
+	  reference_file = "reference.png";
+	  break;
+	case 4:
+	  input_file  = std::string(argv[1]);
+      output_file = std::string(argv[2]);
+	  reference_file = std::string(argv[3]);
+	  break;
+	case 6:
+	  useEpsCheck=true;
+	  perPixelError = atof(argv[4]);
+      globalError   = atof(argv[5]);
+	  break;
+	default:
+      std::cerr << "Usage: ./HW1 input_file [output_filename] [reference_filename] [perPixelError] [globalError]" << std::endl;
+      exit(1);
   }
   //load the image and give us our input and output pointers
   preProcess(&h_rgbaImage, &h_greyImage, &d_rgbaImage, &d_greyImage, input_file);
@@ -55,6 +77,9 @@ int main(int argc, char **argv) {
 
   //check results and output the grey image
   postProcess(output_file);
+
+  generateReferenceImage(input_file, reference_file);
+  compareImages(reference_file, output_file, useEpsCheck, perPixelError, globalError);
 
   return 0;
 }
