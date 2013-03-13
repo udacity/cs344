@@ -7,13 +7,10 @@
 
 # collect source files
 
-SET (compare_files compare.cpp)
-
 file( GLOB  hdr *.hpp *.h )
 file( GLOB  cu  *.cu)
-SET (HW4_files main.cpp loadSaveImage.cpp)
+SET (HW4_files main.cpp HW4.cpp loadSaveImage.cpp)
 
 CUDA_ADD_EXECUTABLE(HW4 ${HW4_files} ${hdr} ${img} ${cu})
 
-ADD_EXECUTABLE(hw4_compare ${compare_files})
 

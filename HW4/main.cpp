@@ -34,13 +34,36 @@ int main(int argc, char **argv) {
 
   std::string input_file;
   std::string output_file;
-  if (argc == 3) {
-    input_file  = std::string(argv[1]);
-    output_file = std::string(argv[2]);
-  }
-  else {
-    std::cerr << "Usage: ./hw input_file output_file" << std::endl;
-    exit(1);
+  std::string reference_file;
+  double perPixelError = 0.0;
+  double globalError   = 0.0;
+  bool useEpsCheck = false;
+
+  switch (argc)
+  {
+	case 2:
+	  input_file = std::string(argv[1]);
+	  output_file = "HW4_output.png";
+	  reference_file = "HW4_reference.png";
+	  break;
+	case 3:
+	  input_file  = std::string(argv[1]);
+      output_file = std::string(argv[2]);
+	  reference_file = "HW4_reference.png";
+	  break;
+	case 4:
+	  input_file  = std::string(argv[1]);
+      output_file = std::string(argv[2]);
+	  reference_file = std::string(argv[3]);
+	  break;
+	case 6:
+	  useEpsCheck=true;
+	  perPixelError = atof(argv[4]);
+      globalError   = atof(argv[5]);
+	  break;
+	default:
+      std::cerr << "Usage: ./HW4 input_file [output_filename] [reference_filename] [perPixelError] [globalError]" << std::endl;
+      exit(1);
   }
   //load the image and give us our input and output pointers
   preProcess(&inputVals, &inputPos, &outputVals, &outputPos, numElems, input_file);
