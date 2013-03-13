@@ -108,6 +108,9 @@ int main(int argc, char **argv) {
   }
 
   generateReferenceImage(reference_file, h_luminance, h_cdf, numRows, numCols, numBins);
+
+  checkCudaErrors(cudaMemcpy(d_cdf, h_cdf, sizeof(unsigned int) * numBins, cudaMemcpyHostToDevice));
+
   //check results and output the tone-mapped image
   postProcess(output_file, numRows, numCols, min_logLum, max_logLum);
 
