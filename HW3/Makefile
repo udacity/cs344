@@ -45,9 +45,6 @@ loadSaveImage.o: loadSaveImage.cpp loadSaveImage.h
 student_func.o: student_func.cu reference_calc.cpp utils.h
 	$(NVCC) -c student_func.cu $(NVCC_OPTS)
 
-compare: compare.cpp utils.h Makefile
-	g++ -o compare compare.cpp -I $(OPENCV_INCLUDEPATH) -L $(OPENCV_LIBPATH) $(OPENCV_LIBS) $(GCC_OPTS) -I $(CUDA_INCLUDEPATH)
-
 clean:
 	rm -f *.o hw compare
 	find . -type f -name '*.exr' | grep -v memorial | xargs rm -f

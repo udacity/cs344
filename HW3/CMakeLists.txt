@@ -12,6 +12,3 @@ file( GLOB  cu  *.cu)
 SET (HW3_files main.cpp HW3.cpp loadSaveImage.cpp)
     
 CUDA_ADD_EXECUTABLE(HW3 ${HW3_files} ${hdr} ${img} ${cu})
-
-ADD_EXECUTABLE(hw3_compare ${compare_files} )
-#link_libraries(hw3_compare HW3)
