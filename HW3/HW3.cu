@@ -277,10 +277,6 @@ void postProcess(const std::string& output_file,
   delete[] h_blue;
 
   //cleanup
-  checkCudaErrors(cudaFree(d_x__));
-  checkCudaErrors(cudaFree(d_y__));
-  checkCudaErrors(cudaFree(d_logY__));
-  checkCudaErrors(cudaFree(d_cdf__));
   checkCudaErrors(cudaFree(d_cdf_normalized));
 }
 
@@ -290,5 +286,12 @@ void generateReferenceImage(std::string reference_file, const float* const h_log
 	float min_logLum=0.0f, max_logLum=1.0f;
 	referenceCalculation(h_logLuminance, h_cdf, numRows, numCols, numBins, min_logLum, max_logLum);
 	checkCudaErrors(cudaMemcpy(d_cdf__, h_cdf, sizeof(unsigned int) * numBins, cudaMemcpyHostToDevice));
-    postProcess(reference_file, numRows, numCols, min_logLum, max_logLum);
+}
+
+void cleanupGlobalMemory(void)
+{
+  checkCudaErrors(cudaFree(d_x__));
+  checkCudaErrors(cudaFree(d_y__));
+  checkCudaErrors(cudaFree(d_logY__));
+  checkCudaErrors(cudaFree(d_cdf__));
 }

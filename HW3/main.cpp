@@ -20,6 +20,8 @@ void postProcess(const std::string& output_file, size_t numRows, size_t numCols,
 void generateReferenceImage(std::string reference_file, const float* const h_logLuminance, unsigned int* const h_cdf,
                           const size_t numRows, const size_t numCols, const size_t numBins);
 
+void cleanupGlobalMemory(void);
+
 // Function from student_func.cu
 void your_histogram_and_prefixsum(const float* const d_luminance,
                                   unsigned int* const d_cdf,
@@ -104,7 +106,13 @@ int main(int argc, char **argv) {
 	min_logLum = std::min(h_luminance[i], min_logLum);
     max_logLum = std::max(h_luminance[i], max_logLum);
   }
+
   generateReferenceImage(reference_file, h_luminance, h_cdf, numRows, numCols, numBins);
+  //check results and output the tone-mapped image
+  postProcess(output_file, numRows, numCols, min_logLum, max_logLum);
+
+  cleanupGlobalMemory();
+
   compareImages(reference_file, output_file, useEpsCheck, perPixelError, globalError);
 
   return 0;
