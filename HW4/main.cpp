@@ -5,6 +5,11 @@
 #include "utils.h"
 #include <string>
 #include <stdio.h>
+#include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
+
+#include "HW4.h"
+#include "reference_calc.h"
 
 void preProcess(unsigned int **inputVals,
                 unsigned int **inputPos,
@@ -85,12 +90,52 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  //check results and output the tone-mapped image
+  //check results and output the red-eye corrected image
   postProcess(outputVals, outputPos, numElems, output_file);
+
+  // check code moved from HW4.cu
+  /****************************************************************************
+  * You can use the code below to help with debugging, but make sure to       *
+  * comment it out again before submitting your assignment for grading,       *
+  * otherwise this code will take too much time and make it seem like your    *
+  * GPU implementation isn't fast enough.                                     *
+  *                                                                           *
+  * This code MUST RUN BEFORE YOUR CODE in case you accidentally change       *
+  * the input values when implementing your radix sort.                       *
+  *                                                                           *
+  * This code performs the reference radix sort on the host and compares your *
+  * sorted values to the reference.                                           *
+  *                                                                           *
+  * Thrust containers are used for copying memory from the GPU                *
+  * ************************************************************************* */
+
+  thrust::host_vector<unsigned int> h_inputVals(thrust::device_ptr<unsigned int>(inputVals),
+									thrust::device_ptr<unsigned int>(inputVals) + numElems);
+  thrust::host_vector<unsigned int> h_inputPos(thrust::device_ptr<unsigned int>(inputPos),
+									thrust::device_ptr<unsigned int>(inputPos) + numElems);
+
+  thrust::host_vector<unsigned int> h_outputVals(numElems);
+  thrust::host_vector<unsigned int> h_outputPos(numElems);
+
+  reference_calculation(&h_inputVals[0], &h_inputPos[0],
+						&h_outputVals[0], &h_outputPos[0],
+						numElems);
+
+  // post-processing uses the GPU - we have to move our host-side output back to the GPU.
+  thrust::device_vector<unsigned int> d_outputVals = h_outputVals;
+  thrust::device_vector<unsigned int> d_outputPos = h_outputPos;
+
+  unsigned int *valsPtr = thrust::raw_pointer_cast(&d_outputVals[0]);
+  unsigned int *posPtr = thrust::raw_pointer_cast(&d_outputPos[0]);
+
+  postProcess(valsPtr, posPtr, numElems, reference_file);
+
+  compareImages(reference_file, output_file, useEpsCheck, perPixelError, globalError);
 
   checkCudaErrors(cudaFree(inputVals));
   checkCudaErrors(cudaFree(inputPos));
   checkCudaErrors(cudaFree(outputVals));
   checkCudaErrors(cudaFree(outputPos));
+
   return 0;
 }

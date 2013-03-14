@@ -379,3 +379,4 @@ void postProcess(const unsigned int* const outputVals,
   d_blue.clear(); d_blue.shrink_to_fit();
   d_green.clear(); d_green.shrink_to_fit();
 }
+
