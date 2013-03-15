@@ -121,16 +121,17 @@ int main(int argc, char **argv) {
 						&h_outputVals[0], &h_outputPos[0],
 						numElems);
 
-  // post-processing uses the GPU - we have to move our host-side output back to the GPU.
-  thrust::device_vector<unsigned int> d_outputVals = h_outputVals;
-  thrust::device_vector<unsigned int> d_outputPos = h_outputPos;
+  //postProcess(valsPtr, posPtr, numElems, reference_file);
 
-  unsigned int *valsPtr = thrust::raw_pointer_cast(&d_outputVals[0]);
-  unsigned int *posPtr = thrust::raw_pointer_cast(&d_outputPos[0]);
+  //compareImages(reference_file, output_file, useEpsCheck, perPixelError, globalError);
 
-  postProcess(valsPtr, posPtr, numElems, reference_file);
+  thrust::host_vector<unsigned int> h_yourOutputVals(thrust::device_ptr<unsigned int>(outputVals),
+													 thrust::device_ptr<unsigned int>(outputVals) + numElems);
+  thrust::host_vector<unsigned int> h_yourOutputPos(thrust::device_ptr<unsigned int>(outputPos),
+													thrust::device_ptr<unsigned int>(outputPos) + numElems);
 
-  compareImages(reference_file, output_file, useEpsCheck, perPixelError, globalError);
+  checkResultsExact(&h_outputVals[0], &h_yourOutputVals[0], numElems);
+  checkResultsExact(&h_outputPos[0], &h_yourOutputPos[0], numElems);
 
   checkCudaErrors(cudaFree(inputVals));
   checkCudaErrors(cudaFree(inputPos));

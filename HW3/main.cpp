@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
   checkCudaErrors(cudaMemcpy(d_cdf, h_cdf, sizeof(unsigned int) * numBins, cudaMemcpyHostToDevice));
 
   //check results and output the tone-mapped image
-  postProcess(output_file, numRows, numCols, min_logLum, max_logLum);
+  postProcess(reference_file, numRows, numCols, min_logLum, max_logLum);
 
   cleanupGlobalMemory();
 
