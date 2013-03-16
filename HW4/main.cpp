@@ -108,11 +108,13 @@ int main(int argc, char **argv) {
   *                                                                           *
   * Thrust containers are used for copying memory from the GPU                *
   * ************************************************************************* */
+  thrust::device_ptr<unsigned int> d_inputVals(inputVals);
+  thrust::device_ptr<unsigned int> d_inputPos(inputPos);
 
-  thrust::host_vector<unsigned int> h_inputVals(thrust::device_ptr<unsigned int>(inputVals),
-									thrust::device_ptr<unsigned int>(inputVals) + numElems);
-  thrust::host_vector<unsigned int> h_inputPos(thrust::device_ptr<unsigned int>(inputPos),
-									thrust::device_ptr<unsigned int>(inputPos) + numElems);
+  thrust::host_vector<unsigned int> h_inputVals(d_inputVals,
+                                                d_inputVals+numElems);
+  thrust::host_vector<unsigned int> h_inputPos(d_inputPos,
+                                               d_inputPos + numElems);
 
   thrust::host_vector<unsigned int> h_outputVals(numElems);
   thrust::host_vector<unsigned int> h_outputPos(numElems);
@@ -125,10 +127,13 @@ int main(int argc, char **argv) {
 
   //compareImages(reference_file, output_file, useEpsCheck, perPixelError, globalError);
 
-  thrust::host_vector<unsigned int> h_yourOutputVals(thrust::device_ptr<unsigned int>(outputVals),
-													 thrust::device_ptr<unsigned int>(outputVals) + numElems);
-  thrust::host_vector<unsigned int> h_yourOutputPos(thrust::device_ptr<unsigned int>(outputPos),
-													thrust::device_ptr<unsigned int>(outputPos) + numElems);
+  thrust::device_ptr<unsigned int> d_outputVals(outputVals);
+  thrust::device_ptr<unsigned int> d_outputPos(outputPos);
+
+  thrust::host_vector<unsigned int> h_yourOutputVals(d_outputVals,
+                                                     d_outputVals + numElems);
+  thrust::host_vector<unsigned int> h_yourOutputPos(d_outputPos,
+                                                    d_outputPos + numElems);
 
   checkResultsExact(&h_outputVals[0], &h_yourOutputVals[0], numElems);
   checkResultsExact(&h_outputPos[0], &h_yourOutputPos[0], numElems);
