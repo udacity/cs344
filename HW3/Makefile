@@ -30,7 +30,7 @@ NVCC_OPTS=-O3 -arch=sm_20 -Xcompiler -Wall -Xcompiler -Wextra -m64
 
 GCC_OPTS=-O3 -Wall -Wextra -m64
 
-student: compare main.o student_func.o HW3.o loadSaveImage.o Makefile
+student: main.o student_func.o HW3.o loadSaveImage.o Makefile
 	$(NVCC) -o hw main.o student_func.o HW3.o loadSaveImage.o -L $(OPENCV_LIBPATH) $(OPENCV_LIBS) $(NVCC_OPTS)
 
 main.o: main.cpp timer.h utils.h
@@ -46,5 +46,5 @@ student_func.o: student_func.cu reference_calc.cpp utils.h
 	$(NVCC) -c student_func.cu $(NVCC_OPTS)
 
 clean:
-	rm -f *.o hw compare
+	rm -f *.o hw
 	find . -type f -name '*.exr' | grep -v memorial | xargs rm -f

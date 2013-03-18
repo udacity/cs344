@@ -29,7 +29,7 @@ NVCC_OPTS=-O3 -arch=sm_20 -Xcompiler -Wall -Xcompiler -Wextra -m64
 
 GCC_OPTS=-O3 -Wall -Wextra -m64
 
-student: compare main.o student_func.o Makefile
+student: main.o student_func.o Makefile
 	$(NVCC) -o hw main.o student_func.o -L $(OPENCV_LIBPATH) $(OPENCV_LIBS) $(NVCC_OPTS)
 
 main.o: main.cpp timer.h utils.h HW2.cpp
@@ -39,4 +39,4 @@ student_func.o: student_func.cu reference_calc.cpp utils.h
 	nvcc -c student_func.cu $(NVCC_OPTS)
 
 clean:
-	rm -f *.o *.png hw compare
+	rm -f *.o *.png hw
