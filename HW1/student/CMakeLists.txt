@@ -10,6 +10,5 @@
 file( GLOB  hdr *.hpp *.h )
 file( GLOB  cu  *.cu)
 SET (HW1_files main.cpp)
-    
-    
+
 CUDA_ADD_EXECUTABLE(HW1 ${HW1_files} ${hdr} ${cu})

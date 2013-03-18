@@ -7,13 +7,11 @@
 
 # collect source files
 
-SET (compare_files compare.cu)
-
 file( GLOB  hdr *.hpp *.h )
 
 SET (HW5_files main.cu student.cu)
 
 CUDA_ADD_EXECUTABLE(HW5 ${HW5_files} ${hdr})
 
-CUDA_ADD_EXECUTABLE(hw5_compare ${hdr} ${compare_files})
+
 
