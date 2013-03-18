@@ -15,6 +15,8 @@
 #include <thrust/random/normal_distribution.h>
 #include <thrust/random/uniform_int_distribution.h>
 
+#include "reference.h"
+
 void computeHistogram(const unsigned int *const d_vals,
                       unsigned int* const d_histo,
                       const unsigned int numBins,
@@ -79,18 +81,27 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  unsigned int *h_gpu = new unsigned int[numBins];
+  unsigned int *h_studentHisto = new unsigned int[numBins];
 
-  checkCudaErrors(cudaMemcpy(h_gpu, d_histo, sizeof(unsigned int) * numBins, cudaMemcpyDeviceToHost));
+  // copy the student-computed histogram back to the host
+  checkCudaErrors(cudaMemcpy(h_studentHisto, d_histo, sizeof(unsigned int) * numBins, cudaMemcpyDeviceToHost));
 
-  std::ofstream ofs(argv[1], std::ios::out | std::iostream::binary);
+  unsigned int *h_vals = new unsigned int[numElems];
+  unsigned int *h_refHisto = new unsigned int[numBins];
 
-  ofs.write(reinterpret_cast<char *>(h_gpu), numBins * sizeof(unsigned int));
-  ofs.close();
+  for (size_t i = 0; i < numElems; ++i) {
+    h_vals[i] = min(max((int)normalDist(rng), 0), numBins - 1);
+  }
 
-  delete[] h_gpu;
-  delete[] vals;
-  delete[] histo;
+  //generate reference for the given mean
+  reference_calculation(h_vals, h_refHisto, numBins, numElems);
+
+  //Now do the comparison
+  checkResultsExact(h_refHisto, h_studentHisto, numBins);
+
+  delete[] h_vals;
+  delete[] h_refHisto;
+  delete[] h_studentHisto;
 
   cudaFree(d_vals);
   cudaFree(d_histo);
