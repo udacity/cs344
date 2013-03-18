@@ -37,7 +37,7 @@ NVCC_OPTS=-O3 -arch=sm_20 -m64
 
 GCC_OPTS=-O3 -m64
 
-student: compare main.o student_func.o HW6.o loadSaveImage.o Makefile
+student: main.o student_func.o HW6.o loadSaveImage.o Makefile
 	$(NVCC) -o hw main.o student_func.o HW6.o loadSaveImage.o -L $(OPENCV_LIBPATH) $(OPENCV_LIBS) $(NVCC_OPTS)
 
 main.o: main.cpp timer.h utils.h
@@ -52,9 +52,6 @@ loadSaveImage.o: loadSaveImage.cpp loadSaveImage.h
 student_func.o: student_func.cu reference_calc.cpp utils.h
 	$(NVCC) -c student_func.cu $(NVCC_OPTS)
 
-compare: compare.cpp utils.h Makefile
-	g++ -o compare compare.cpp -I $(OPENCV_INCLUDEPATH) -L $(OPENCV_LIBPATH) $(OPENCV_LIBS) $(GCC_OPTS) -I $(CUDA_INCLUDEPATH)
-
 clean:
-	rm -f *.o hw compare
+	rm -f *.o hw
 	find . -type f -name '*.png' | grep -v source.png | grep -v destination.png | xargs rm -f
