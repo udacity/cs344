@@ -1,3 +1,6 @@
+#ifndef REFERENCE_H__
+#define REFERENCE_H__
+
 //Reference Histogram calculation
 
 void reference_calculation(const unsigned int* const vals,
@@ -14,3 +17,5 @@ void reference_calculation(const unsigned int* const vals,
   for (size_t i = 0; i < numElems; ++i)
     histo[vals[i]]++;
 }
+
+#endif
