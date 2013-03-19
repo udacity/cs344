@@ -6,6 +6,11 @@
 #include <string>
 #include <stdio.h>
 
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/opencv.hpp>
+
+
 void preProcess( uchar4 **sourceImg, size_t &numRowsSource,  size_t &numColsSource,
                  uchar4 **destImg,
                  uchar4 **blendedImg, const std::string& source_filename,
