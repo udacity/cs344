@@ -22,19 +22,16 @@ void computeHistogram(const unsigned int *const d_vals,
                       const unsigned int numBins,
                       const unsigned int numElems);
 
-int main(int argc, char **argv) {
-
-  if (argc != 2) {
-    std::cerr << "You must supply an output file" << std::endl;
-    exit(1);
-  }
-
+int main(void)
+{
   const unsigned int numBins = 1024;
   const unsigned int numElems = 10000 * numBins;
   const float stddev = 100.f;
 
   unsigned int *vals = new unsigned int[numElems];
-  unsigned int *histo = new unsigned int[numBins];
+  unsigned int *h_vals = new unsigned int[numElems];
+  unsigned int *h_studentHisto = new unsigned int[numBins];
+  unsigned int *h_refHisto = new unsigned int[numBins];
 
 #if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
   srand(GetTickCount());
@@ -56,6 +53,7 @@ int main(int argc, char **argv) {
 
   thrust::random::experimental::normal_distribution<float> normalDist((float)mean, stddev);
 
+  // Generate the random values
   for (size_t i = 0; i < numElems; ++i) {
     vals[i] = std::min((unsigned int) std::max((int)normalDist(rng), 0), numBins - 1);
   }
@@ -81,20 +79,11 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  unsigned int *h_studentHisto = new unsigned int[numBins];
-
   // copy the student-computed histogram back to the host
   checkCudaErrors(cudaMemcpy(h_studentHisto, d_histo, sizeof(unsigned int) * numBins, cudaMemcpyDeviceToHost));
 
-  unsigned int *h_vals = new unsigned int[numElems];
-  unsigned int *h_refHisto = new unsigned int[numBins];
-
-  for (size_t i = 0; i < numElems; ++i) {
-    h_vals[i] = std::min((unsigned int) std::max((int)normalDist(rng), 0), numBins - 1);
-  }
-
   //generate reference for the given mean
-  reference_calculation(h_vals, h_refHisto, numBins, numElems);
+  reference_calculation(vals, h_refHisto, numBins, numElems);
 
   //Now do the comparison
   checkResultsExact(h_refHisto, h_studentHisto, numBins);
