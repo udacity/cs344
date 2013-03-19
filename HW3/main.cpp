@@ -65,6 +65,9 @@ int main(int argc, char **argv) {
 	  break;
 	case 6:
 	  useEpsCheck=true;
+	  input_file  = std::string(argv[1]);
+	  output_file = std::string(argv[2]);
+	  reference_file = std::string(argv[3]);
 	  perPixelError = atof(argv[4]);
       globalError   = atof(argv[5]);
 	  break;
