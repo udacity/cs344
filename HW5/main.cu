@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
   thrust::random::experimental::normal_distribution<float> normalDist((float)mean, stddev);
 
   for (size_t i = 0; i < numElems; ++i) {
-    vals[i] = min(max((int)normalDist(rng), 0), numBins - 1);
+    vals[i] = std::min((unsigned int) std::max((int)normalDist(rng), 0), numBins - 1);
   }
 
   unsigned int *d_vals, *d_histo;
@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
   unsigned int *h_refHisto = new unsigned int[numBins];
 
   for (size_t i = 0; i < numElems; ++i) {
-    h_vals[i] = min(max((int)normalDist(rng), 0), numBins - 1);
+    h_vals[i] = std::min((unsigned int) std::max((int)normalDist(rng), 0), numBins - 1);
   }
 
   //generate reference for the given mean
