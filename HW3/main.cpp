@@ -8,6 +8,7 @@
 #include <algorithm>
 
 #include "HW3.h"
+#include "reference_calc.h"
 
 // Functions from HW3.cu
 void preProcess(float **d_luminance, unsigned int **d_cdf,
@@ -16,9 +17,6 @@ void preProcess(float **d_luminance, unsigned int **d_cdf,
 
 void postProcess(const std::string& output_file, size_t numRows, size_t numCols,
                  float min_logLum, float max_logLum);
-
-void generateReferenceImage(std::string reference_file, const float* const h_logLuminance, unsigned int* const h_cdf,
-                          const size_t numRows, const size_t numCols, const size_t numBins);
 
 void cleanupGlobalMemory(void);
 
@@ -110,7 +108,7 @@ int main(int argc, char **argv) {
     max_logLum = std::max(h_luminance[i], max_logLum);
   }
 
-  generateReferenceImage(reference_file, h_luminance, h_cdf, numRows, numCols, numBins);
+  referenceCalculation(h_luminance, h_cdf, numRows, numCols, numBins, min_logLum, max_logLum);
 
   checkCudaErrors(cudaMemcpy(d_cdf, h_cdf, sizeof(unsigned int) * numBins, cudaMemcpyHostToDevice));
 

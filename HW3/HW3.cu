@@ -1,6 +1,5 @@
 #include "utils.h"
 #include <string>
-#include <opencv2/opencv.hpp>
 #include "loadSaveImage.h"
 #include <thrust/extrema.h>
 
