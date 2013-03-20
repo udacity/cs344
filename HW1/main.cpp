@@ -6,14 +6,8 @@
 #include <string>
 #include <stdio.h>
 
-size_t numRows();  //return # of rows in the image
-size_t numCols();  //return # of cols in the image
-
-void preProcess(uchar4 **h_rgbaImage, unsigned char **h_greyImage,
-                uchar4 **d_rgbaImage, unsigned char **d_greyImage,
-                const std::string& filename);
-
-void postProcess(const std::string& output_file);
+#include "reference_calc.h"
+#include "compare.h"
 
 void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, uchar4 * const d_rgbaImage,
                             unsigned char* const d_greyImage, size_t numRows, size_t numCols);

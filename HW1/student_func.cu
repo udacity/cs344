@@ -31,7 +31,6 @@
 //You should fill in the kernel as well as set the block and grid sizes
 //so that the entire image is processed.
 
-#include "reference_calc.cpp"
 #include "utils.h"
 
 __global__
