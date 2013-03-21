@@ -9,8 +9,6 @@
 #include "reference_calc.h"
 #include "compare.h"
 
-void postProcess(const std::string& output_file);
-
 //include the definitions of the above functions for this homework
 #include "HW2.cpp"
 
@@ -27,8 +25,6 @@ void your_gaussian_blur(const uchar4 * const h_inputImageRGBA, uchar4 * const d_
 
 void allocateMemoryAndCopyToGPU(const size_t numRowsImage, const size_t numColsImage,
                                 const float* const h_filter, const size_t filterWidth);
-
-void cleanup();
 
 
 /*******  Begin main *********/
@@ -97,17 +93,30 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  cleanup();
   //check results and output the blurred image
-  postProcess(output_file);
 
-  generateReferenceImage(input_file, reference_file, filterWidth);
+  size_t numPixels = numRows()*numCols();
+  //copy the output back to the host
+  checkCudaErrors(cudaMemcpy(h_outputImageRGBA, d_outputImageRGBA__, sizeof(uchar4) * numPixels, cudaMemcpyDeviceToHost));
+
+  postProcess(output_file, h_outputImageRGBA);
+
+  referenceCalculation(h_inputImageRGBA, h_outputImageRGBA,
+                       numRows(), numCols(),
+                       h_filter, filterWidth);
+
+  postProcess(reference_file, h_outputImageRGBA);
+
+    //  Cheater easy way with OpenCV
+    //generateReferenceImage(input_file, reference_file, filterWidth);
 
   compareImages(reference_file, output_file, useEpsCheck, perPixelError, globalError);
 
   checkCudaErrors(cudaFree(d_redBlurred));
   checkCudaErrors(cudaFree(d_greenBlurred));
   checkCudaErrors(cudaFree(d_blueBlurred));
+
+  cleanUp();
 
   return 0;
 }

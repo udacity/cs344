@@ -103,24 +103,25 @@ void preProcess(uchar4 **h_inputImageRGBA, uchar4 **h_outputImageRGBA,
   checkCudaErrors(cudaMemset(*d_blueBlurred,  0, sizeof(unsigned char) * numPixels));
 }
 
-void postProcess(const std::string& output_file) {
-  const int numPixels = numRows() * numCols();
-  //copy the output back to the host
-  checkCudaErrors(cudaMemcpy(imageOutputRGBA.ptr<unsigned char>(0), d_outputImageRGBA__, sizeof(uchar4) * numPixels, cudaMemcpyDeviceToHost));
+void postProcess(const std::string& output_file, uchar4* data_ptr) {
+  cv::Mat output(numRows(), numCols(), CV_8UC4, (void*)data_ptr);
 
   cv::Mat imageOutputBGR;
-  cv::cvtColor(imageOutputRGBA, imageOutputBGR, CV_RGBA2BGR);
+  cv::cvtColor(output, imageOutputBGR, CV_RGBA2BGR);
   //output the image
   cv::imwrite(output_file.c_str(), imageOutputBGR);
+}
 
-  //cleanup
+void cleanUp(void)
+{
   cudaFree(d_inputImageRGBA__);
   cudaFree(d_outputImageRGBA__);
   delete[] h_filter__;
 }
 
 
-// An unused bit of code showing how to accomplish this assignment using OpenCV.  It is much faster than the naive implementation in reference_calc.cpp.
+// An unused bit of code showing how to accomplish this assignment using OpenCV.  It is much faster 
+//    than the naive implementation in reference_calc.cpp.
 void generateReferenceImage(std::string input_file, std::string reference_file, int kernel_size)
 {
 	cv::Mat input = cv::imread(input_file);
