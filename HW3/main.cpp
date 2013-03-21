@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <algorithm>
 
-#include "HW3.h"
+#include "compare.h"
 #include "reference_calc.h"
 
 // Functions from HW3.cu

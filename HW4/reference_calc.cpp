@@ -1,5 +1,6 @@
 #include <algorithm>
-#include <cstdlib>
+// For memset
+#include <cstring>
 
 void reference_calculation(unsigned int* inputVals,
                            unsigned int* inputPos,

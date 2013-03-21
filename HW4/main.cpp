@@ -8,7 +8,7 @@
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 
-#include "HW4.h"
+#include "compare.h"
 #include "reference_calc.h"
 
 void preProcess(unsigned int **inputVals,
