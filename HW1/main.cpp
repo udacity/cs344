@@ -5,12 +5,13 @@
 #include "utils.h"
 #include <string>
 #include <stdio.h>
-
 #include "reference_calc.h"
 #include "compare.h"
 
-void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, uchar4 * const d_rgbaImage,
-                            unsigned char* const d_greyImage, size_t numRows, size_t numCols);
+void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, 
+                            uchar4 * const d_rgbaImage,
+                            unsigned char* const d_greyImage, 
+                            size_t numRows, size_t numCols);
 
 //include the definitions of the above functions for this homework
 #include "HW1.cpp"
@@ -76,7 +77,8 @@ int main(int argc, char **argv) {
   postProcess(output_file);
 
   generateReferenceImage(input_file, reference_file);
-  compareImages(reference_file, output_file, useEpsCheck, perPixelError, globalError);
+  compareImages(reference_file, output_file, useEpsCheck, perPixelError, 
+                globalError);
 
   return 0;
 }
