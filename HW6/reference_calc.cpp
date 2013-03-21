@@ -1,6 +1,3 @@
-#ifndef REFERENCE_H__
-#define REFERENCE_H__
-
 //Udacity HW 6
 //Poisson Blending Reference Calculation
 
@@ -253,4 +250,3 @@ void reference_calc(const uchar4* const h_sourceImg,
   delete[] strictInteriorPixels;
 }
 
-#endif
