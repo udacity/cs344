@@ -6,17 +6,16 @@
 #include <string>
 #include <stdio.h>
 
-size_t numRows();  //return # of rows in the image
-size_t numCols();  //return # of cols in the image
-
-void preProcess(uchar4 **h_inputImageRGBA, uchar4 **h_outputImageRGBA,
-                uchar4 **d_inputImageRGBA, uchar4 **d_outputImageRGBA,
-                unsigned char **d_redBlurred,
-                unsigned char **d_greenBlurred,
-                unsigned char **d_blueBlurred,
-                const std::string& filename);
+#include "reference_calc.h"
+#include "compare.h"
 
 void postProcess(const std::string& output_file);
+
+//include the definitions of the above functions for this homework
+#include "HW2.cpp"
+
+
+/*******  DEFINED IN student_func.cu *********/
 
 void your_gaussian_blur(const uchar4 * const h_inputImageRGBA, uchar4 * const d_inputImageRGBA,
                         uchar4* const d_outputImageRGBA,
@@ -31,8 +30,8 @@ void allocateMemoryAndCopyToGPU(const size_t numRowsImage, const size_t numColsI
 
 void cleanup();
 
-//include the definitions of the above functions for this homework
-#include "HW2.cpp"
+
+/*******  Begin main *********/
 
 int main(int argc, char **argv) {
   uchar4 *h_inputImageRGBA,  *d_inputImageRGBA;
@@ -103,6 +102,7 @@ int main(int argc, char **argv) {
   postProcess(output_file);
 
   generateReferenceImage(input_file, reference_file, filterWidth);
+
   compareImages(reference_file, output_file, useEpsCheck, perPixelError, globalError);
 
   checkCudaErrors(cudaFree(d_redBlurred));

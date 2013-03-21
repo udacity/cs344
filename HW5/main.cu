@@ -15,7 +15,7 @@
 #include <thrust/random/normal_distribution.h>
 #include <thrust/random/uniform_int_distribution.h>
 
-#include "reference.h"
+#include "reference_calc.h"
 
 void computeHistogram(const unsigned int *const d_vals,
                       unsigned int* const d_histo,
