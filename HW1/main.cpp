@@ -73,12 +73,21 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  //check results and output the grey image
-  postProcess(output_file);
+  size_t numPixels = numRows()*numCols();
+  checkCudaErrors(cudaMemcpy(h_greyImage, d_greyImage, sizeof(unsigned char) * numPixels, cudaMemcpyDeviceToHost));
 
-  generateReferenceImage(input_file, reference_file);
+  //check results and output the grey image
+  postProcess(output_file, h_greyImage);
+
+  referenceCalculation(h_rgbaImage, h_greyImage, numRows(), numCols());
+
+  postProcess(reference_file, h_greyImage);
+
+  //generateReferenceImage(input_file, reference_file);
   compareImages(reference_file, output_file, useEpsCheck, perPixelError, 
                 globalError);
+
+  cleanup();
 
   return 0;
 }
