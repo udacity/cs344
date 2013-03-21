@@ -16,7 +16,8 @@ void preProcess(unsigned int **inputVals,
                 unsigned int **outputVals,
                 unsigned int **outputPos,
                 size_t &numElems,
-                const std::string& filename);
+                const std::string& filename,
+				const std::string& template_file);
 
 void postProcess(const unsigned int* const outputVals,
                  const unsigned int* const outputPos,
@@ -38,6 +39,7 @@ int main(int argc, char **argv) {
   size_t numElems;
 
   std::string input_file;
+  std::string template_file;
   std::string output_file;
   std::string reference_file;
   double perPixelError = 0.0;
@@ -46,35 +48,22 @@ int main(int argc, char **argv) {
 
   switch (argc)
   {
-	case 2:
-	  input_file = std::string(argv[1]);
-	  output_file = "HW4_output.png";
-	  reference_file = "HW4_reference.png";
-	  break;
 	case 3:
 	  input_file  = std::string(argv[1]);
-      output_file = std::string(argv[2]);
-	  reference_file = "HW4_reference.png";
+      template_file = std::string(argv[2]);
+	  output_file = "HW4_output.png";
 	  break;
 	case 4:
 	  input_file  = std::string(argv[1]);
-      output_file = std::string(argv[2]);
-	  reference_file = std::string(argv[3]);
-	  break;
-	case 6:
-	  useEpsCheck=true;
-	  input_file  = std::string(argv[1]);
-	  output_file = std::string(argv[2]);
-	  reference_file = std::string(argv[3]);
-	  perPixelError = atof(argv[4]);
-      globalError   = atof(argv[5]);
+      template_file = std::string(argv[2]);
+	  output_file = std::string(argv[3]);
 	  break;
 	default:
-          std::cerr << "Usage: ./HW4 input_file [output_filename] [reference_filename] [perPixelError] [globalError]" << std::endl;
+          std::cerr << "Usage: ./HW4 input_file template_file [output_filename]" << std::endl;
           exit(1);
   }
   //load the image and give us our input and output pointers
-  preProcess(&inputVals, &inputPos, &outputVals, &outputPos, numElems, input_file);
+  preProcess(&inputVals, &inputPos, &outputVals, &outputPos, numElems, input_file, template_file);
 
   GpuTimer timer;
   timer.Start();
