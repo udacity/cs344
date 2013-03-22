@@ -24,7 +24,7 @@ void compareImages(std::string reference_filename, std::string test_filename,
 
   diff = diffSingleChannel.reshape(reference.channels(), 0);
 
-  cv::imwrite("HW2_differenceImage.png", diff);
+  cv::imwrite("HW1_differenceImage.png", diff);
   //OK, now we can start comparing values...
   unsigned char *referencePtr = reference.ptr<unsigned char>(0);
   unsigned char *testPtr = test.ptr<unsigned char>(0);
