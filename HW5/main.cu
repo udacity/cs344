@@ -71,7 +71,7 @@ int main(void)
   timer.Start();
   computeHistogram(d_vals, d_histo, numBins, numElems);
   timer.Stop();
-  int err = printf("%f msecs.\n", timer.Elapsed());
+  int err = printf("Your code ran in: %f msecs.\n", timer.Elapsed());
 
   if (err < 0) {
     //Couldn't print! Probably the student closed stdout - bad news
