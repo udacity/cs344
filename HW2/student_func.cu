@@ -100,7 +100,6 @@
 
 //****************************************************************************
 
-#include "reference_calc.cpp"
 #include "utils.h"
 
 __global__
@@ -253,35 +252,6 @@ void your_gaussian_blur(const uchar4 * const h_inputImageRGBA, uchar4 * const d_
                                              numCols);
   cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
 
-  /****************************************************************************
-  * You can use the code below to help with debugging, but make sure to       *
-  * comment it out again before submitting your assignment for grading,       *
-  * otherwise this code will take too much time and make it seem like your    *
-  * GPU implementation isn't fast enough.                                     *
-  *                                                                           *
-  * This code generates a reference image on the host by running the          *
-  * reference calculation we have given you.  It then copies your GPU         *
-  * generated image back to the host and calls a function that compares the   *
-  * the two and will output the first location they differ by too much.       *
-  * ************************************************************************* */
-
-  /*uchar4 *h_outputImage     = new uchar4[numRows * numCols];
-  uchar4 *h_outputReference = new uchar4[numRows * numCols];
-
-  checkCudaErrors(cudaMemcpy(h_outputImage, d_outputImageRGBA, 
-                             numRows * numCols * sizeof(uchar4), 
-                             cudaMemcpyDeviceToHost));
-
-  referenceCalculation(h_inputImageRGBA, h_outputReference, numRows, numCols,
-                       h_filter, filterWidth);
-
-  //the 4 is because there are 4 channels in the image
-  checkResultsExact((unsigned char *)h_outputReference,
-                    (unsigned char *)h_outputImage,
-                    numRows * numCols * 4); 
- 
-  delete [] h_outputImage;
-  delete [] h_outputReference;*/
 }
 
 

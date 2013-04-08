@@ -1,5 +1,7 @@
-#include <cmath>
+#include <algorithm>
 #include <cassert>
+// for uchar4 struct
+#include <cuda_runtime.h>
 
 void channelConvolution(const unsigned char* const channel,
                         unsigned char* const channelBlurred,
@@ -18,8 +20,8 @@ void channelConvolution(const unsigned char* const channel,
         for (int filter_c = -filterWidth/2; filter_c <= filterWidth/2; ++filter_c) {
           //Find the global image position for this filter position
           //clamp to boundary of the image
-          int image_r = min(max(r + filter_r, 0), static_cast<int>(numRows - 1));
-          int image_c = min(max(c + filter_c, 0), static_cast<int>(numCols - 1));
+		  int image_r = std::min(std::max(r + filter_r, 0), static_cast<int>(numRows - 1));
+          int image_c = std::min(std::max(c + filter_c, 0), static_cast<int>(numCols - 1));
 
           float image_value = static_cast<float>(channel[image_r * numCols + image_c]);
           float filter_value = filter[(filter_r + filterWidth/2) * filterWidth + filter_c + filterWidth/2];

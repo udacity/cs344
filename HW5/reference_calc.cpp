@@ -1,3 +1,4 @@
+#include <cstdlib>
 //Reference Histogram calculation
 
 void reference_calculation(const unsigned int* const vals,

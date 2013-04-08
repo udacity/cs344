@@ -66,7 +66,6 @@
 
 #include "utils.h"
 #include <thrust/host_vector.h>
-#include "reference_calc.cpp"
 
 void your_blend(const uchar4* const h_sourceImg,  //IN
                 const size_t numRowsSource, const size_t numColsSource,
@@ -111,18 +110,4 @@ void your_blend(const uchar4* const h_sourceImg,  //IN
 
       to catch any errors that happened while executing the kernel.
   */
-
-
-
-  /* The reference calculation is provided below, feel free to use it
-     for debugging purposes. 
-   */
-
-  /*
-    uchar4* h_reference = new uchar4[srcSize];
-    reference_calc(h_sourceImg, numRowsSource, numColsSource,
-                   h_destImg, h_reference);
-
-    checkResultsEps((unsigned char *)h_reference, (unsigned char *)h_blendedImg, 4 * srcSize, 2, .01);
-    delete[] h_reference; */
 }

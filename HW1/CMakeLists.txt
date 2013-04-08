@@ -7,13 +7,8 @@
 
 # collect source files
 
-SET (compare_files compare.cpp)
-
 file( GLOB  hdr *.hpp *.h )
 file( GLOB  cu  *.cu)
-SET (HW1_files main.cpp)
-    
-    
-CUDA_ADD_EXECUTABLE(HW1 ${HW1_files} ${hdr} ${img} ${cu})
+SET (HW1_files main.cpp reference_calc.cpp compare.cpp)
 
-add_executable(hw1_compare ${compare_files})
+CUDA_ADD_EXECUTABLE(HW1 ${HW1_files} ${hdr} ${cu})

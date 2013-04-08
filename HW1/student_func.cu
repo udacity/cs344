@@ -31,7 +31,6 @@
 //You should fill in the kernel as well as set the block and grid sizes
 //so that the entire image is processed.
 
-#include "reference_calc.cpp"
 #include "utils.h"
 
 __global__
@@ -64,29 +63,4 @@ void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, uchar4 * const d_r
   
   cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
 
-  /****************************************************************************
-  * You can use the code below to help with debugging, but make sure to       *
-  * comment it out again before submitting your assignment for grading,       *
-  * otherwise this code will take too much time and make it seem like your    *
-  * GPU implementation isn't fast enough.                                     *
-  *                                                                           *
-  * This code generates a reference image on the host by running the          *
-  * reference calculation we have given you.  It then copies your GPU         *
-  * generated image back to the host and calls a function that compares the   *
-  * the two and will output the first location they differ by too much.       *
-  * ************************************************************************* */
-
-
-  /*unsigned char *h_greyImageGPU = new unsigned char[numRows * numCols];
-  unsigned char *h_greyImageRef = new unsigned char[numRows * numCols];
-
-  checkCudaErrors(cudaMemcpy(h_greyImageGPU, d_greyImage, 
-                             numRows * numCols * sizeof(unsigned char), 
-                             cudaMemcpyDeviceToHost));
-  referenceCalculation(h_rgbaImage, h_greyImageRef, numRows, numCols);
-
-  checkResultsEps(h_greyImageRef, h_greyImageGPU, numRows * numCols, 1, .001); 
- 
-  delete [] h_greyImageGPU;
-  delete [] h_greyImageRef;*/
 }

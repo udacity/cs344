@@ -195,7 +195,8 @@ void preProcess(unsigned int **inputVals,
                 unsigned int **outputVals,
                 unsigned int **outputPos,
                 size_t &numElem,
-                const std::string& filename) {
+                const std::string& filename,
+				const std::string& templateFilename) {
   //make sure the context initializes ok
   checkCudaErrors(cudaFree(0));
 
@@ -203,8 +204,6 @@ void preProcess(unsigned int **inputVals,
   uchar4 *eyeTemplate;
 
   size_t numRowsTemplate, numColsTemplate;
-
-  std::string templateFilename("red_eye_effect_template_5.jpg");
 
   loadImageRGBA(filename, &inImg, &numRowsImg, &numColsImg);
   loadImageRGBA(templateFilename, &eyeTemplate, &numRowsTemplate, &numColsTemplate);
@@ -379,3 +378,4 @@ void postProcess(const unsigned int* const outputVals,
   d_blue.clear(); d_blue.shrink_to_fit();
   d_green.clear(); d_green.shrink_to_fit();
 }
+

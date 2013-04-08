@@ -79,8 +79,6 @@
 
 */
 
-
-#include "reference_calc.cpp"
 #include "utils.h"
 
 void your_histogram_and_prefixsum(const float* const d_logLuminance,
@@ -103,32 +101,4 @@ void your_histogram_and_prefixsum(const float* const d_logLuminance,
        incoming d_cdf pointer which already has been allocated for you)       */
 
 
-
-
-  /****************************************************************************
-  * You can use the code below to help with debugging, but make sure to       *
-  * comment it out again before submitting your assignment for grading,       *
-  * otherwise this code will take too much time and make it seem like your    *
-  * GPU implementation isn't fast enough.                                     *
-  *                                                                           *
-  * This code generates a reference cdf on the host by running the            *
-  * reference calculation we have given you.  It then copies your GPU         *
-  * generated cdf back to the host and calls a function that compares the     *
-  * the two and will output the first location they differ.                   *
-  * ************************************************************************* */
-
-  /* float *h_logLuminance = new float[numRows * numCols];
-  unsigned int *h_cdf   = new unsigned int[numBins];
-  unsigned int *h_your_cdf = new unsigned int[numBins];
-  checkCudaErrors(cudaMemcpy(h_logLuminance, d_logLuminance, numCols * numRows * sizeof(float), cudaMemcpyDeviceToHost));
-  checkCudaErrors(cudaMemcpy(h_your_cdf, d_cdf, numBins * sizeof(unsigned int), cudaMemcpyDeviceToHost));
-
-  referenceCalculation(h_logLuminance, h_cdf, numRows, numCols, numBins);
-
-  //compare the results of the CDF
-  checkResultsExact(h_cdf, h_your_cdf, numBins);
- 
-  delete[] h_logLuminance;
-  delete[] h_cdf; 
-  delete[] h_your_cdf; */
 }

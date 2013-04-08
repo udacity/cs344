@@ -35,10 +35,10 @@ NVCC_OPTS=-O3 -arch=sm_20 -Xcompiler -Wall -Xcompiler -Wextra -m64
 
 GCC_OPTS=-O3 -Wall -Wextra -m64
 
-student: compare main.o student_func.o HW4.o loadSaveImage.o Makefile
-	$(NVCC) -o hw main.o student_func.o HW4.o loadSaveImage.o -L $(OPENCV_LIBPATH) $(OPENCV_LIBS) $(NVCC_OPTS)
+student: main.o student_func.o HW4.o loadSaveImage.o compare.o reference_calc.o Makefile
+	$(NVCC) -o HW4 main.o student_func.o HW4.o loadSaveImage.o compare.o reference_calc.o -L $(OPENCV_LIBPATH) $(OPENCV_LIBS) $(NVCC_OPTS)
 
-main.o: main.cpp timer.h utils.h
+main.o: main.cpp timer.h utils.h reference_calc.h
 	g++ -c main.cpp $(GCC_OPTS) -I $(CUDA_INCLUDEPATH)
 
 HW4.o: HW4.cu loadSaveImage.h utils.h
@@ -47,11 +47,14 @@ HW4.o: HW4.cu loadSaveImage.h utils.h
 loadSaveImage.o: loadSaveImage.cpp loadSaveImage.h
 	g++ -c loadSaveImage.cpp -I $(OPENCV_INCLUDEPATH) $(GCC_OPTS) -I $(CUDA_INCLUDEPATH)
 
+compare.o: compare.cpp compare.h
+	g++ -c compare.cpp -I $(OPENCV_INCLUDEPATH) $(GCC_OPTS) -I $(CUDA_INCLUDEPATH)
+
+reference_calc.o: reference_calc.cpp reference_calc.h
+	g++ -c reference_calc.cpp -I $(OPENCV_INCLUDEPATH) $(GCC_OPTS) -I $(CUDA_INCLUDEPATH)
+
 student_func.o: student_func.cu reference_calc.cpp utils.h
 	$(NVCC) -c student_func.cu $(NVCC_OPTS)
 
-compare: compare.cpp utils.h Makefile
-	g++ -o compare compare.cpp -I $(OPENCV_INCLUDEPATH) -L $(OPENCV_LIBPATH) $(OPENCV_LIBS) $(GCC_OPTS) -I $(CUDA_INCLUDEPATH)
-
 clean:
-	rm -f *.o *.png hw compare
+	rm -f *.o *.png hw
