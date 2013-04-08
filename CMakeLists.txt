@@ -31,7 +31,7 @@ if(CUDA_FOUND)
 	set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-Xcompiler -Wextra")
     endif (UNIX)
 
-    add_subdirectory (HW1/student)
+    add_subdirectory (HW1)
     add_subdirectory (HW2)
     add_subdirectory (HW3)
     add_subdirectory (HW4)

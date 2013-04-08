@@ -4,15 +4,6 @@
 #include <string>
 #include <iostream>
 
-#include <thrust/device_vector.h>
-#include <thrust/copy.h>
-#include <thrust/transform.h>
-#include <thrust/functional.h>
-#include <thrust/reduce.h>
-#include <thrust/extrema.h>
-#include <thrust/iterator/constant_iterator.h>
-#include <thrust/sequence.h>
-
 #include "loadSaveImage.h"
 #include <stdio.h>
 

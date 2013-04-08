@@ -274,9 +274,13 @@ void postProcess(const std::string& output_file,
   delete[] h_blue;
 
   //cleanup
+  checkCudaErrors(cudaFree(d_cdf_normalized));
+}
+
+void cleanupGlobalMemory(void)
+{
   checkCudaErrors(cudaFree(d_x__));
   checkCudaErrors(cudaFree(d_y__));
   checkCudaErrors(cudaFree(d_logY__));
   checkCudaErrors(cudaFree(d_cdf__));
-  checkCudaErrors(cudaFree(d_cdf_normalized));
 }

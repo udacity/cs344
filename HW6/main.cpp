@@ -6,6 +6,13 @@
 #include <string>
 #include <stdio.h>
 
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/opencv.hpp>
+
+#include "reference_calc.h"
+#include "compare.h"
+
 void preProcess( uchar4 **sourceImg, size_t &numRowsSource,  size_t &numColsSource,
                  uchar4 **destImg,
                  uchar4 **blendedImg, const std::string& source_filename,
@@ -27,15 +34,46 @@ int main(int argc, char **argv) {
   std::string input_source_file;
   std::string input_dest_file;
   std::string output_file;
-  if (argc == 4) {
-    input_source_file = std::string(argv[1]);
-    input_dest_file   = std::string(argv[2]);
-    output_file       = std::string(argv[3]);
-  }
-  else {
-    std::cerr << "Usage: ./hw input_source_file input_dest_file output_file" << std::endl;
-    exit(1);
-  }
+
+  std::string reference_file;
+  double perPixelError = 0.0;
+  double globalError   = 0.0;
+  bool useEpsCheck = false;
+
+  switch (argc)
+  {
+  	case 3:
+  	  input_source_file  = std::string(argv[1]);
+  	  input_dest_file = std::string(argv[2]);
+      output_file = "HW6_output.png";
+  	  reference_file = "HW6_reference.png";
+  	  break;
+  	case 4:
+  	  input_source_file  = std::string(argv[1]);
+  	  input_dest_file = std::string(argv[2]);
+      output_file = std::string(argv[3]);
+  	  reference_file = "HW6_reference.png";
+  	  break;
+  	case 5:
+  	  input_source_file  = std::string(argv[1]);
+  	  input_dest_file = std::string(argv[2]);
+  	  output_file = std::string(argv[3]);
+  	  reference_file = std::string(argv[4]);
+  	  break;
+  	case 7:
+  	  useEpsCheck=true;
+  	  input_source_file  = std::string(argv[1]);
+  	  input_dest_file = std::string(argv[2]);
+  	  output_file = std::string(argv[3]);
+  	  reference_file = std::string(argv[4]);
+  	  perPixelError = atof(argv[5]);
+      globalError   = atof(argv[6]);
+  	  break;
+  	default:
+        std::cerr << "Usage: ./HW6 input_source_file input_dest_filename [output_filename] [reference_filename] [perPixelError] [globalError]" << std::endl;
+        exit(1);
+    }
+
   //load the image and give us our input and output pointers
   preProcess(&h_sourceImg, numRowsSource, numColsSource,
              &h_destImg,
@@ -51,7 +89,7 @@ int main(int argc, char **argv) {
 
   timer.Stop();
   cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
-  int err = printf("%f msecs.\n", timer.Elapsed());
+  int err = printf("Your code ran in: %f msecs.\n", timer.Elapsed());
   printf("\n");
   if (err < 0) {
     //Couldn't print! Probably the student closed stdout - bad news
@@ -62,8 +100,20 @@ int main(int argc, char **argv) {
   //check results and output the tone-mapped image
   postProcess(h_blendedImg, numRowsSource, numColsSource, output_file);
 
+  // calculate the reference image
+  uchar4* h_reference = new uchar4[numRowsSource*numColsSource];
+  reference_calc(h_sourceImg, numRowsSource, numColsSource,
+                   h_destImg, h_reference);
+
+  // save the reference image
+  postProcess(h_reference, numRowsSource, numColsSource, reference_file);
+
+  compareImages(reference_file, output_file, useEpsCheck, perPixelError, globalError);
+
+  delete[] h_reference;
   delete[] h_destImg;
   delete[] h_sourceImg;
   delete[] h_blendedImg;
   return 0;
 }
+

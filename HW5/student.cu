@@ -26,8 +26,6 @@
 
 
 #include "utils.h"
-#include "reference.cpp"
-
 
 __global__
 void yourHisto(const unsigned int* const vals, //INPUT
@@ -51,27 +49,6 @@ void computeHistogram(const unsigned int* const d_vals, //INPUT
 
   //if you want to use/launch more than one kernel,
   //feel free
+
   cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
-
-  //Again we have provided a reference calculation for you
-  //to help with debugging.  Uncomment the code below
-  //to activate it.
-  //REMEMBER TO COMMENT IT OUT BEFORE GRADING
-  //otherwise your code will be too slow
-
-  /*unsigned int *h_vals = new unsigned int[numElems];
-  unsigned int *h_histo = new unsigned int[numBins];
-
-  checkCudaErrors(cudaMemcpy(h_vals, d_vals, sizeof(unsigned int) * numElems, cudaMemcpyDeviceToHost));
-
-  reference_calculation(h_vals, h_histo, numBins, numElems);
-
-  unsigned int *your_histo = new unsigned int[numBins];
-  checkCudaErrors(cudaMemcpy(your_histo, d_histo, sizeof(unsigned int) * numBins, cudaMemcpyDeviceToHost));
-
-  checkResultsExact(h_histo, your_histo, numBins); 
-
-  delete[] h_vals;
-  delete[] h_histo;
-  delete[] your_histo;*/
 }

@@ -1,9 +1,6 @@
 #include <algorithm>
-#include <cstdlib>
-
-//A simple un-optimized reference radix sort calculation
-//Only deals with power-of-2 radices
-
+// For memset
+#include <cstring>
 
 void reference_calculation(unsigned int* inputVals,
                            unsigned int* inputPos,

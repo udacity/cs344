@@ -61,15 +61,24 @@ void preProcess(uchar4 **inputImage, unsigned char **greyImage,
   d_greyImage__ = *d_greyImage;
 }
 
-void postProcess(const std::string& output_file) {
-  const int numPixels = numRows() * numCols();
-  //copy the output back to the host
-  checkCudaErrors(cudaMemcpy(imageGrey.ptr<unsigned char>(0), d_greyImage__, sizeof(unsigned char) * numPixels, cudaMemcpyDeviceToHost));
+void postProcess(const std::string& output_file, unsigned char* data_ptr) {
+  cv::Mat output(numRows(), numCols(), CV_8UC1, (void*)data_ptr);
 
   //output the image
-  cv::imwrite(output_file.c_str(), imageGrey);
+  cv::imwrite(output_file.c_str(), output);
+}
 
+void cleanup()
+{
   //cleanup
   cudaFree(d_rgbaImage__);
   cudaFree(d_greyImage__);
+}
+
+void generateReferenceImage(std::string input_filename, std::string output_filename)
+{
+  cv::Mat reference = cv::imread(input_filename, CV_LOAD_IMAGE_GRAYSCALE);
+
+  cv::imwrite(output_filename, reference);
+
 }

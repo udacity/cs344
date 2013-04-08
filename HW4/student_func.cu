@@ -1,7 +1,6 @@
 //Udacity HW 4
 //Radix Sorting
 
-#include "reference_calc.cpp"
 #include "utils.h"
 #include <thrust/host_vector.h>
 
@@ -49,51 +48,7 @@ void your_sort(unsigned int* const d_inputVals,
                unsigned int* const d_outputVals,
                unsigned int* const d_outputPos,
                const size_t numElems)
-{
-  /****************************************************************************
-  * You can use the code below to help with debugging, but make sure to       *
-  * comment it out again before submitting your assignment for grading,       *
-  * otherwise this code will take too much time and make it seem like your    *
-  * GPU implementation isn't fast enough.                                     *
-  *                                                                           *
-  * This code MUST RUN BEFORE YOUR CODE in case you accidentally change       *
-  * the input values when implementing your radix sort.                       *
-  *                                                                           *
-  * This code performs the reference radix sort on the host and compares your *
-  * sorted values to the reference.                                           *
-  *                                                                           *
-  * Thrust containers are used for copying memory from the GPU                *
-  * ************************************************************************* */
-  
-  /* thrust::host_vector<unsigned int> h_inputVals(thrust::device_ptr<unsigned int>(d_inputVals),
-                                                thrust::device_ptr<unsigned int>(d_inputVals) + numElems);
-  thrust::host_vector<unsigned int> h_inputPos(thrust::device_ptr<unsigned int>(d_inputPos),
-                                               thrust::device_ptr<unsigned int>(d_inputPos) + numElems);
-
-  thrust::host_vector<unsigned int> h_outputVals(numElems);
-  thrust::host_vector<unsigned int> h_outputPos(numElems);
-
-  reference_calculation(&h_inputVals[0], &h_inputPos[0],
-                        &h_outputVals[0], &h_outputPos[0],
-                        numElems);
-  */
-   
-
+{ 
   //TODO
   //PUT YOUR SORT HERE
-
-  /* *********************************************************************** *
-   * Uncomment the code below to do the correctness checking between your    *
-   * result and the reference.                                               *
-   **************************************************************************/
-
-  /*
-  thrust::host_vector<unsigned int> h_yourOutputVals(thrust::device_ptr<unsigned int>(d_outputVals),
-                                                     thrust::device_ptr<unsigned int>(d_outputVals) + numElems);
-  thrust::host_vector<unsigned int> h_yourOutputPos(thrust::device_ptr<unsigned int>(d_outputPos),
-                                                    thrust::device_ptr<unsigned int>(d_outputPos) + numElems);
-
-  checkResultsExact(&h_outputVals[0], &h_yourOutputVals[0], numElems);
-  checkResultsExact(&h_outputPos[0], &h_yourOutputPos[0], numElems);
-  */
 }

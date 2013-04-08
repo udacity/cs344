@@ -60,7 +60,7 @@ void computeIteration(const unsigned char* const dstImg,
 
     float f_next_val = (blendedSum + borderSum + g[offset]) / 4.f;
 
-    f_next[offset] = min(255.f, max(0.f, f_next_val)); //clip to [0, 255]
+    f_next[offset] = std::min(255.f, std::max(0.f, f_next_val)); //clip to [0, 255]
   }
 
 }
@@ -249,3 +249,4 @@ void reference_calc(const uchar4* const h_sourceImg,
   delete[] borderPixels;
   delete[] strictInteriorPixels;
 }
+
