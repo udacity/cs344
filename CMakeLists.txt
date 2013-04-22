@@ -31,6 +31,11 @@ if(CUDA_FOUND)
 	set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-Xcompiler -Wextra")
     endif (UNIX)
 
+    # add debugging to CUDA NVCC flags.  For NVidia's NSight tools.
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+	set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-G")
+    endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
+
     add_subdirectory (HW1)
     add_subdirectory (HW2)
     add_subdirectory (HW3)
