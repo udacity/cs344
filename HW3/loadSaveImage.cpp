@@ -2,6 +2,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
 #include <vector>
+#include <stdio.h>
 #include "cuda_runtime.h"
 
 //The caller becomes responsible for the returned pointer. This
@@ -13,7 +14,16 @@ void loadImageHDR(const std::string &filename,
                   float **imagePtr,
                   size_t *numRows, size_t *numCols)
 {
-  cv::Mat image = cv::imread(filename.c_str(), CV_LOAD_IMAGE_COLOR | CV_LOAD_IMAGE_ANYDEPTH);
+    cv::Mat originImg = cv::imread(filename.c_str(), CV_LOAD_IMAGE_COLOR | CV_LOAD_IMAGE_ANYDEPTH);
+
+    cv::Mat image;
+
+    if(originImg.type() != CV_32FC3){
+      originImg.convertTo(image,CV_32FC3);
+    } else{
+      image = originImg;
+    }
+
   if (image.empty()) {
     std::cerr << "Couldn't open file: " << filename << std::endl;
     exit(1);
