@@ -18,3 +18,7 @@
 
 # OS X stuff
 .DS_Store
+
+build
+bin
+
