@@ -22,3 +22,11 @@
 build
 bin
 
+*png
+*jpg
+*\#*
+*\~*
+CMakeCache.txt
+CMakeFiles
+HW1/HW1
+HW2/HW2

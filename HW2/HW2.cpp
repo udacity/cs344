@@ -110,6 +110,8 @@ void postProcess(const std::string& output_file, uchar4* data_ptr) {
   cv::cvtColor(output, imageOutputBGR, CV_RGBA2BGR);
   //output the image
   cv::imwrite(output_file.c_str(), imageOutputBGR);
+  // cv::imshow("Blurr image", imageOutputBGR);
+  // cv::waitKey(0);
 }
 
 void cleanUp(void)
