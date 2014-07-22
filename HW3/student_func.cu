@@ -4,7 +4,7 @@
   Background HDR
   ==============
 
-  A High Definition Range (HDR) image contains a wider variation of intensity
+  A High Dynamic Range (HDR) image contains a wider variation of intensity
   and color than is allowed by the RGB format with 1 byte per channel that we
   have used in the previous assignment.  
 
