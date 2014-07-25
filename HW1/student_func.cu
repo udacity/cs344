@@ -31,7 +31,9 @@
 //You should fill in the kernel as well as set the block and grid sizes
 //so that the entire image is processed.
 
+#include "reference_calc.cpp"
 #include "utils.h"
+#include <stdio.h>
 
 __global__
 void rgba_to_greyscale(const uchar4* const rgbaImage,
@@ -50,6 +52,17 @@ void rgba_to_greyscale(const uchar4* const rgbaImage,
   //First create a mapping from the 2D block and grid locations
   //to an absolute 2D location in the image, then use that to
   //calculate a 1D offset
+  unsigned x = threadIdx.x*32 + blockIdx.x;
+  unsigned y = threadIdx.y*32 + blockIdx.y;
+  
+  if (x >= numCols || y >= numRows) {
+      // printf("Out of bound: %d %d (limits are %d %d) \n", x, y, numCols, numRows);
+      return;
+  }
+  unsigned pixel_idx = y*numCols + x;
+  const uchar4 rgba = rgbaImage[pixel_idx];
+  greyImage[pixel_idx] = 0.299f * rgba.x + 0.587f * rgba.y + 0.114f * rgba.z;
+  //printf("%d %d: %d %d %d --> %d \n", x, y, rgba.x, rgba.y, rgba.z, greyImage[pixel_idx]);    
 }
 
 void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, uchar4 * const d_rgbaImage,
@@ -57,10 +70,16 @@ void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, uchar4 * const d_r
 {
   //You must fill in the correct sizes for the blockSize and gridSize
   //currently only one block with one thread is being launched
-  const dim3 blockSize(1, 1, 1);  //TODO
-  const dim3 gridSize( 1, 1, 1);  //TODO
+  unsigned num_pixels = numRows*numCols;
+  unsigned bw_size = sizeof(unsigned char)*num_pixels;
+  unsigned color_size = sizeof(uchar4)*num_pixels;
+  //cudaMalloc((void**)&d_rgbaImage, color_size);
+  //cudaMalloc((void**)&d_greyImage, bw_size);
+  //cudaMemcpy(d_rgbaImage, h_rgbaImage, color_size, cudaMemcpyHostToDevice); 
+  const dim3 blockSize(numCols/32 + 1, numRows/32 + 1, 1);  //TODO
+  const dim3 gridSize(32, 32, 1);  //TODO
   rgba_to_greyscale<<<gridSize, blockSize>>>(d_rgbaImage, d_greyImage, numRows, numCols);
-  
   cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
+  //cudaMemcpy(&h_greyImage, &d_greyImage, bw_size, cudaMemcpyDeviceToHost); 
 
 }
