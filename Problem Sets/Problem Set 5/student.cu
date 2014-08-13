@@ -27,7 +27,9 @@
 #include "utils.h"
 #include "reference.cpp"
 
+#define powerOfTwo 4
 #define elementsPerThread 64
+#define maxThreadsPerBlock 1024
 
 __global__
 void yourHisto(const unsigned int* const vals, //INPUT
@@ -67,11 +69,10 @@ void computeHistogram(const unsigned int* const d_vals, //INPUT
                       const unsigned int numBins,
                       const unsigned int numElems)
 {
-  int powerOfTwo = 4;
-  int threadsPerBlock = 1024/powerOfTwo;
-  int blocks = (numElems + (threadsPerBlock*elementsPerThread) - 1) / (threadsPerBlock*elementsPerThread);
+  int threadsPerBlock = maxThreadsPerBlock/powerOfTwo;
+  int elementsPerBlock = threadsPerBlock*elementsPerThread;
+  int blocks = (numElems + elementsPerBlock - 1) / elementsPerBlock;
     
   yourHisto<<<blocks, threadsPerBlock, (numBins + 250) * sizeof(unsigned int)>>>(d_vals, d_histo, numElems, numBins);
   cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
 }
-
