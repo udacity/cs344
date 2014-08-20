@@ -64,9 +64,6 @@
 
 #include "utils.h"
 #include <thrust/host_vector.h>
-#include "reference_calc.cpp"
-
-
 
 __global__ void computeMask(
   const uchar4* sourceImg, unsigned char* mask, const int numRowsSource, const int numColsSource)
@@ -110,7 +107,7 @@ __global__ void  computerInteriorAndBorder(
   }
 }
 
-__global__ void separate_channels(
+__global__ void separateChannels(
   uchar4* sourceImg,
   unsigned char* red,
   unsigned char* green,
@@ -138,6 +135,55 @@ __global__ void initialize(
   blended[index] = static_cast<float>(source[index]);
 }
 
+__global__ void performIteration(
+  float * currentGuess,
+  float * nextGuess,
+  unsigned char * sourceChannel,
+  unsigned char * destChannel,
+  unsigned char * interiorMask,
+  unsigned char * borderMask,
+  const int numRowsSource,
+  const int numColsSource)
+{
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  if (index >= numColsSource * numRowsSource) return;
+  if (interiorMask[index] == 0) return;
+
+  float sum1 = 0;
+  sum1 += interiorMask[index-numColsSource] * currentGuess[index-numColsSource] + borderMask[index-numColsSource] * destChannel[index-numColsSource];
+  sum1 += interiorMask[index+numColsSource] * currentGuess[index+numColsSource] + borderMask[index+numColsSource] * destChannel[index+numColsSource];
+  sum1 += interiorMask[index-1] * currentGuess[index-1] + borderMask[index-1] * destChannel[index-1];
+  sum1 += interiorMask[index+1] * currentGuess[index+1] + borderMask[index+1] * destChannel[index+1];
+
+
+  float sum2 = 0;
+  sum2 += interiorMask[index] * (sourceChannel[index] - sourceChannel[index-numColsSource]);
+  sum2 += interiorMask[index] * (sourceChannel[index] - sourceChannel[index+numColsSource]); 
+  sum2 += interiorMask[index] * (sourceChannel[index] - sourceChannel[index-1]);
+  sum2 += interiorMask[index] * (sourceChannel[index] - sourceChannel[index+1]);
+
+  float newVal = (sum1 + sum2) / 4.f;
+  nextGuess[index] = min(255.f, max(0.f, newVal));
+}
+
+__global__ void createOutput(
+    uchar4 * blendedImg,
+    float *finalGuessRed,
+    float *finalGuessGreen,
+    float *finalGuessBlue,
+    unsigned char *interiorMask,
+    const int numRowsSource,
+    const int numColsSource)
+{
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  if (index >= numColsSource * numRowsSource) return;
+  if (!(interiorMask[index]))  return;
+  
+  blendedImg[index].x = static_cast<unsigned char>(finalGuessRed[index]);
+  blendedImg[index].y = static_cast<unsigned char>(finalGuessGreen[index]);
+  blendedImg[index].z = static_cast<unsigned char>(finalGuessBlue[index]);
+}
+
 void your_blend(const uchar4* const h_sourceImg,  //IN
                 const size_t numRowsSource, const size_t numColsSource,
                 const uchar4* const h_destImg, //IN
@@ -145,7 +191,9 @@ void your_blend(const uchar4* const h_sourceImg,  //IN
 {  
   uchar4        *d_sourceImg, *d_destImg, *d_blendedImg;
   unsigned char *d_mask, *d_border, *d_interior;
-  unsigned char *d_red, *d_green, *d_blue;
+  unsigned char *d_redSrc, *d_greenSrc, *d_blueSrc;
+  unsigned char *d_redDst, *d_greenDst, *d_blueDst;
+
 
   checkCudaErrors(cudaMalloc(&d_sourceImg,  sizeof(uchar4) * numColsSource * numRowsSource));
   checkCudaErrors(cudaMalloc(&d_destImg,    sizeof(uchar4) * numColsSource * numRowsSource));
@@ -153,9 +201,12 @@ void your_blend(const uchar4* const h_sourceImg,  //IN
   checkCudaErrors(cudaMalloc(&d_mask,       sizeof(unsigned char) * numColsSource * numRowsSource));
   checkCudaErrors(cudaMalloc(&d_border,     sizeof(unsigned char) * numColsSource * numRowsSource));
   checkCudaErrors(cudaMalloc(&d_interior,   sizeof(unsigned char) * numColsSource * numRowsSource));
-  checkCudaErrors(cudaMalloc(&d_red,        sizeof(unsigned char) * numColsSource * numRowsSource));
-  checkCudaErrors(cudaMalloc(&d_green,      sizeof(unsigned char) * numColsSource * numRowsSource));
-  checkCudaErrors(cudaMalloc(&d_blue,       sizeof(unsigned char) * numColsSource * numRowsSource));
+  checkCudaErrors(cudaMalloc(&d_redSrc,     sizeof(unsigned char) * numColsSource * numRowsSource));
+  checkCudaErrors(cudaMalloc(&d_greenSrc,   sizeof(unsigned char) * numColsSource * numRowsSource));
+  checkCudaErrors(cudaMalloc(&d_blueSrc,    sizeof(unsigned char) * numColsSource * numRowsSource));
+  checkCudaErrors(cudaMalloc(&d_redDst,     sizeof(unsigned char) * numColsSource * numRowsSource));
+  checkCudaErrors(cudaMalloc(&d_greenDst,   sizeof(unsigned char) * numColsSource * numRowsSource));
+  checkCudaErrors(cudaMalloc(&d_blueDst,    sizeof(unsigned char) * numColsSource * numRowsSource));
 
   checkCudaErrors(cudaMemcpy(d_sourceImg, h_sourceImg,  sizeof(uchar4) * numColsSource * numRowsSource, cudaMemcpyHostToDevice));
   checkCudaErrors(cudaMemcpy(d_destImg,   h_destImg,    sizeof(uchar4) * numColsSource * numRowsSource, cudaMemcpyHostToDevice));
@@ -181,7 +232,8 @@ void your_blend(const uchar4* const h_sourceImg,  //IN
 
   // 3) Separate out the incoming image into three separate channels
 
-  separate_channels<<<blocks, threadsPerBlock>>>(d_sourceImg, d_red, d_green, d_blue, numRowsSource, numColsSource);
+  separateChannels<<<blocks, threadsPerBlock>>>(d_sourceImg, d_redSrc, d_greenSrc, d_blueSrc, numRowsSource, numColsSource);
+  separateChannels<<<blocks, threadsPerBlock>>>(d_destImg, d_redDst, d_greenDst, d_blueDst, numRowsSource, numColsSource);
   cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
 
   // 4) Create two float(!) buffers for each color channel that will
@@ -201,21 +253,71 @@ void your_blend(const uchar4* const h_sourceImg,  //IN
   checkCudaErrors(cudaMalloc(&d_blendedBlue1,   sizeof(float) * numColsSource * numRowsSource));
   checkCudaErrors(cudaMalloc(&d_blendedBlue2,   sizeof(float) * numColsSource * numRowsSource));
 
-  initialize<<<blocks, threadsPerBlock>>>(d_red,    d_blendedRed1,    numRowsSource, numColsSource);
-  initialize<<<blocks, threadsPerBlock>>>(d_red,    d_blendedRed2,    numRowsSource, numColsSource);
-  initialize<<<blocks, threadsPerBlock>>>(d_green,  d_blendedGreen1,  numRowsSource, numColsSource);
-  initialize<<<blocks, threadsPerBlock>>>(d_green,  d_blendedGreen2,  numRowsSource, numColsSource);
-  initialize<<<blocks, threadsPerBlock>>>(d_blue,   d_blendedBlue1,   numRowsSource, numColsSource);
-  initialize<<<blocks, threadsPerBlock>>>(d_blue,   d_blendedBlue2,   numRowsSource, numColsSource);
+  initialize<<<blocks, threadsPerBlock>>>(d_redSrc,    d_blendedRed1,    numRowsSource, numColsSource);
+  initialize<<<blocks, threadsPerBlock>>>(d_redDst,    d_blendedRed2,    numRowsSource, numColsSource);
+  initialize<<<blocks, threadsPerBlock>>>(d_greenSrc,  d_blendedGreen1,  numRowsSource, numColsSource);
+  initialize<<<blocks, threadsPerBlock>>>(d_greenDst,  d_blendedGreen2,  numRowsSource, numColsSource);
+  initialize<<<blocks, threadsPerBlock>>>(d_blueSrc,   d_blendedBlue1,   numRowsSource, numColsSource);
+  initialize<<<blocks, threadsPerBlock>>>(d_blueDst,   d_blendedBlue2,   numRowsSource, numColsSource);
   cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
 
   // 5) For each color channel perform the Jacobi iteration described 
   //    above 800 times.
+  const int iterations(800);
+  for(int i = 0; i < iterations; ++i)
+  {
+    performIteration<<<blocks, threadsPerBlock>>>(
+      d_blendedRed1,d_blendedRed2, d_redSrc, d_redDst, d_interior, d_border, numRowsSource, numColsSource);
+    performIteration<<<blocks, threadsPerBlock>>>(
+      d_blendedGreen1,d_blendedGreen2, d_greenSrc, d_greenDst, d_interior, d_border, numRowsSource, numColsSource);
+    performIteration<<<blocks, threadsPerBlock>>>(
+      d_blendedBlue1,d_blendedBlue2, d_blueSrc, d_blueDst, d_interior, d_border, numRowsSource, numColsSource);
+    cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
+
+    std::swap(d_blendedRed1, d_blendedRed2);
+    std::swap(d_blendedGreen1, d_blendedGreen2);
+    std::swap(d_blendedBlue1, d_blendedBlue2);
+  }
+  // even number of iterations, so swap once more
+  std::swap(d_blendedRed1, d_blendedRed2);
+  std::swap(d_blendedGreen1, d_blendedGreen2);
+  std::swap(d_blendedBlue1, d_blendedBlue2);
 
   // 6) Create the output image by replacing all the interior pixels
   //    in the destination image with the result of the Jacobi iterations.
   //    Just cast the floating point values to unsigned chars since we have
   //    already made sure to clamp them to the correct range.
+  checkCudaErrors(cudaMemcpy(d_blendedImg, d_destImg, sizeof(uchar4) * numRowsSource * numColsSource, cudaMemcpyDeviceToDevice));
+
+  createOutput<<<blocks, threadsPerBlock>>>(
+    d_blendedImg, d_blendedRed2, d_blendedGreen2, d_blendedBlue2, d_interior, numRowsSource, numColsSource);
+
+  checkCudaErrors(cudaMemcpy(h_blendedImg, d_blendedImg, sizeof(uchar4) * numRowsSource * numColsSource,cudaMemcpyDeviceToHost));
+  cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
+
+  //
+  // DONT FORGET TO FREE ALL OF THE MEMORY !!!
+  //
+  checkCudaErrors(cudaFree(d_sourceImg));
+  checkCudaErrors(cudaFree(d_destImg));
+  checkCudaErrors(cudaFree(d_blendedImg));
+  checkCudaErrors(cudaFree(d_mask));
+  checkCudaErrors(cudaFree(d_border));
+  checkCudaErrors(cudaFree(d_interior));
+  checkCudaErrors(cudaFree(d_redSrc));
+  checkCudaErrors(cudaFree(d_redDst));
+  checkCudaErrors(cudaFree(d_greenSrc));
+  checkCudaErrors(cudaFree(d_greenDst));
+  checkCudaErrors(cudaFree(d_blueSrc));
+  checkCudaErrors(cudaFree(d_blueDst));
+  checkCudaErrors(cudaFree(d_blendedRed1));
+  checkCudaErrors(cudaFree(d_blendedRed2));
+  checkCudaErrors(cudaFree(d_blendedGreen1));
+  checkCudaErrors(cudaFree(d_blendedGreen2));
+  checkCudaErrors(cudaFree(d_blendedBlue1));
+  checkCudaErrors(cudaFree(d_blendedBlue2));
+    
+
 
   /* The reference calculation is provided below, feel free to use it
      for debugging purposes. 
