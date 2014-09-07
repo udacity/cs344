@@ -1,1 +1,1 @@
-My solutions to the udacity cs344 Intro to Paralell programming course
+My solutions to the udacity cs344 Intro to Paralell programming course. The course is taught using nVidia cuda. For the most part (aside from the final project), my work is in the problem set folders under student_func.cu.
