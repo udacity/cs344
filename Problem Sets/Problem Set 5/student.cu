@@ -24,20 +24,44 @@
 
 */
 
-
 #include "utils.h"
+#include "reference.cpp"
+
+#define powerOfTwo 4
+#define elementsPerThread 64
+#define maxThreadsPerBlock 1024
 
 __global__
 void yourHisto(const unsigned int* const vals, //INPUT
                unsigned int* const histo,      //OUPUT
-               int numVals)
+               const int numVals,
+               const int numBins)
 {
-  //TODO fill in this kernel to calculate the histogram
-  //as quickly as possible
-
-  //Although we provide only one kernel skeleton,
-  //feel free to use more if it will help you
-  //write faster code
+  int tid = threadIdx.x;
+  int index = blockIdx.x * blockDim.x + tid;
+    
+  // create sharedMemory histogram and initialize to 0
+  extern __shared__ unsigned int localHistogram[];
+  for (int i = tid; i < numBins; i += blockDim.x) {
+    localHistogram[i] = 0;
+  }
+ 
+  __syncthreads();
+  
+  // use offset to ensure coalescing read from global memory
+  // each thread reads with a stride of the offset
+  // parallel threads read one coalesced piece of memory
+  int offset = numVals / elementsPerThread;
+  for(int i = 0; i < elementsPerThread; ++i)
+  {
+    atomicAdd(&(localHistogram[vals[index + offset*i]]),1);
+  }
+  
+  __syncthreads();
+  
+  for (int i = tid; i < numBins; i += blockDim.x) {
+    atomicAdd(&histo[i], localHistogram[i]);
+  }
 }
 
 void computeHistogram(const unsigned int* const d_vals, //INPUT
@@ -45,10 +69,10 @@ void computeHistogram(const unsigned int* const d_vals, //INPUT
                       const unsigned int numBins,
                       const unsigned int numElems)
 {
-  //TODO Launch the yourHisto kernel
-
-  //if you want to use/launch more than one kernel,
-  //feel free
-
+  int threadsPerBlock = maxThreadsPerBlock/powerOfTwo;
+  int elementsPerBlock = threadsPerBlock*elementsPerThread;
+  int blocks = (numElems + elementsPerBlock - 1) / elementsPerBlock;
+    
+  yourHisto<<<blocks, threadsPerBlock, (numBins + 250) * sizeof(unsigned int)>>>(d_vals, d_histo, numElems, numBins);
   cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
 }
