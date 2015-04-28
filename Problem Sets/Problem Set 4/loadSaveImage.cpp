@@ -3,7 +3,7 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include "cuda_runtime.h"
-
+using namespace std;
 //The caller becomes responsible for the returned pointer. This
 //is done in the interest of keeping this code as simple as possible.
 //In production code this is a bad idea - we should use RAII
@@ -13,7 +13,7 @@ void loadImageHDR(const std::string &filename,
                   float **imagePtr,
                   size_t *numRows, size_t *numCols)
 {
-  cv::Mat image = cv::imread(filename.c_str(), CV_LOAD_IMAGE_COLOR | CV_LOAD_IMAGE_ANYDEPTH);
+  cv::Mat image = cv::imread(filename.c_str(), 1 | 3);
   if (image.empty()) {
     std::cerr << "Couldn't open file: " << filename << std::endl;
     exit(1);
@@ -43,7 +43,7 @@ void loadImageRGBA(const std::string &filename,
                    uchar4 **imagePtr,
                    size_t *numRows, size_t *numCols)
 {
-  cv::Mat image = cv::imread(filename.c_str(), CV_LOAD_IMAGE_COLOR);
+  cv::Mat image = cv::imread(filename.c_str(), 1);
   if (image.empty()) {
     std::cerr << "Couldn't open file: " << filename << std::endl;
     exit(1);
@@ -60,7 +60,7 @@ void loadImageRGBA(const std::string &filename,
   }
 
   cv::Mat imageRGBA;
-  cv::cvtColor(image, imageRGBA, CV_BGR2RGBA);
+  cv::cvtColor(image, imageRGBA, COLOR_BGR2RGBA);
 
   *imagePtr = new uchar4[image.rows * image.cols];
 
@@ -85,7 +85,7 @@ void saveImageRGBA(const uchar4* const image,
   sizes[1] = numCols;
   cv::Mat imageRGBA(2, sizes, CV_8UC4, (void *)image);
   cv::Mat imageOutputBGR;
-  cv::cvtColor(imageRGBA, imageOutputBGR, CV_RGBA2BGR);
+  cv::cvtColor(imageRGBA, imageOutputBGR, COLOR_RGBA2BGR);
   //output the image
   cv::imwrite(output_file.c_str(), imageOutputBGR);
 }
