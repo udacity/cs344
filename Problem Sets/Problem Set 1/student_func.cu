@@ -15,7 +15,7 @@
 
 //To convert an image from color to grayscale one simple method is to
 //set the intensity to the average of the RGB channels.  But we will
-//use a more sophisticated method that takes into account how the eye 
+//use a more sophisticated method that takes into account how the eye
 //perceives color and weights the channels unequally.
 
 //The eye responds most strongly to green followed by red and then blue.
@@ -24,7 +24,7 @@
 
 //I = .299f * R + .587f * G + .114f * B
 
-//Notice the trailing f's on the numbers which indicate that they are 
+//Notice the trailing f's on the numbers which indicate that they are
 //single precision floating point constants and not double precision
 //constants.
 
@@ -50,6 +50,34 @@ void rgba_to_greyscale(const uchar4* const rgbaImage,
   //First create a mapping from the 2D block and grid locations
   //to an absolute 2D location in the image, then use that to
   //calculate a 1D offset
+
+  //Thread positions respect to the block
+  int idx = threadIdx.x;
+  int idy = threadIdx.y;
+
+
+  //Block position
+  int blockPosX = blockIdx.x;
+  int blockPosY = blockIdx.y;
+
+  //Block positions
+  int blockDimX = blockDim.x;
+  int blockDimY = blockDim.y;
+
+  //Grid positions
+  int gridSizeX = gridDim.x;
+  int gridSizeY = gridDim.y;
+
+  //Absolute positions
+  int absoluteX = blockPosX * blockDimX + idx;
+  int absoluteY = blockPosY * blockDimY + idy;
+  int absolute = blockDimX * gridSizeX * absoluteY + absoluteX;
+
+  uchar4 rgba = rgbaImage[absolute];
+
+  float greyValue = .299f*rgba.x + .587f*rgba.y + .114f*rgba.z;
+
+  greyImage[absolute] = greyValue;
 }
 
 void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, uchar4 * const d_rgbaImage,
@@ -57,10 +85,10 @@ void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, uchar4 * const d_r
 {
   //You must fill in the correct sizes for the blockSize and gridSize
   //currently only one block with one thread is being launched
-  const dim3 blockSize(1, 1, 1);  //TODO
-  const dim3 gridSize( 1, 1, 1);  //TODO
+  const dim3 blockSize(numRows/16 + 1, numCols/16 + 1, 1);  //TODO
+  const dim3 gridSize( 16, 16, 1);  //TODO
   rgba_to_greyscale<<<gridSize, blockSize>>>(d_rgbaImage, d_greyImage, numRows, numCols);
-  
+
   cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
 
 }
