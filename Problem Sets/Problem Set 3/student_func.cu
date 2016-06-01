@@ -71,7 +71,7 @@
 
   histo with 3 bins: [4 7 3]
 
-  cdf : [4 11 14]
+  cdf : [0 4 11]
 
 
   Your task is to calculate this cumulative distribution by following these
