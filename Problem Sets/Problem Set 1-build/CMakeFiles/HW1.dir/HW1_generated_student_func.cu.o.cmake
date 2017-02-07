@@ -72,21 +72,14 @@ set(generated_cubin_file_internal "/home/guilherme/udacityClass/cs344/Problem Se
 set(CUDA_NVCC_EXECUTABLE "/usr/local/cuda-8.0/bin/nvcc") # path
 set(CUDA_NVCC_FLAGS 
   -ccbin /usr/bin/clang;
-  -gencode;arch=compute_52,code=sm_52;
-  -gencode;arch=compute_30,code=sm_30;
-  -gencode;arch=compute_35,code=sm_35;
-  -gencode;arch=compute_35,code=compute_35;
-  -gencode;arch=compute_20,code=sm_20;
-  -gencode;arch=compute_11,code=sm_11;
-  -gencode;arch=compute_12,code=sm_12;
-  -gencode;arch=compute_13,code=sm_13;-Xcompiler -Wextra ;; ) # list
+  -gencode;arch=compute_52,code=sm_52;-Xcompiler -Wextra ;; ) # list
 # Build specific configuration flags
 set(CUDA_NVCC_FLAGS_DEBUG -G ; )
 set(CUDA_NVCC_FLAGS_MINSIZEREL  ; )
 set(CUDA_NVCC_FLAGS_RELEASE  ; )
 set(CUDA_NVCC_FLAGS_RELWITHDEBINFO  ; )
 set(nvcc_flags -m64) # list
-set(CUDA_NVCC_INCLUDE_ARGS "-I/usr/local/cuda-8.0/include;-I/usr/local/cuda-8.0/include") # list (needs to be in quotes to handle spaces properly).
+set(CUDA_NVCC_INCLUDE_ARGS "-I/usr/local/cuda-8.0/include;-I/home/guilherme/opencv/build;-I/usr/local/cuda-8.0/include") # list (needs to be in quotes to handle spaces properly).
 set(format_flag "-c") # string
 set(cuda_language_flag ) # list
 
