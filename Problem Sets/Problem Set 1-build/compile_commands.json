@@ -1,0 +1,17 @@
+[
+{
+  "directory": "/home/guilherme/udacityClass/cs344/Problem Sets/Problem Set 1-build",
+  "command": "/usr/bin/c++    -I/usr/local/cuda-8.0/include -isystem /usr/local/include -isystem /usr/local/include/opencv  -stdlib=libstdc++ -g   -o CMakeFiles/HW1.dir/main.cpp.o -c \"/home/guilherme/udacityClass/cs344/Problem Sets/Problem Set 1/main.cpp\"",
+  "file": "/home/guilherme/udacityClass/cs344/Problem Sets/Problem Set 1/main.cpp"
+},
+{
+  "directory": "/home/guilherme/udacityClass/cs344/Problem Sets/Problem Set 1-build",
+  "command": "/usr/bin/c++    -I/usr/local/cuda-8.0/include -isystem /usr/local/include -isystem /usr/local/include/opencv  -stdlib=libstdc++ -g   -o CMakeFiles/HW1.dir/reference_calc.cpp.o -c \"/home/guilherme/udacityClass/cs344/Problem Sets/Problem Set 1/reference_calc.cpp\"",
+  "file": "/home/guilherme/udacityClass/cs344/Problem Sets/Problem Set 1/reference_calc.cpp"
+},
+{
+  "directory": "/home/guilherme/udacityClass/cs344/Problem Sets/Problem Set 1-build",
+  "command": "/usr/bin/c++    -I/usr/local/cuda-8.0/include -isystem /usr/local/include -isystem /usr/local/include/opencv  -stdlib=libstdc++ -g   -o CMakeFiles/HW1.dir/compare.cpp.o -c \"/home/guilherme/udacityClass/cs344/Problem Sets/Problem Set 1/compare.cpp\"",
+  "file": "/home/guilherme/udacityClass/cs344/Problem Sets/Problem Set 1/compare.cpp"
+}
+]

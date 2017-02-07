@@ -8,9 +8,9 @@
 #include "reference_calc.h"
 #include "compare.h"
 
-void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, 
+void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage,
                             uchar4 * const d_rgbaImage,
-                            unsigned char* const d_greyImage, 
+                            unsigned char* const d_greyImage,
                             size_t numRows, size_t numCols);
 
 //include the definitions of the above functions for this homework
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
 	  break;
 	case 3:
 	  input_file  = std::string(argv[1]);
-      output_file = std::string(argv[2]);
+    output_file = std::string(argv[2]);
 	  reference_file = "HW1_reference.png";
 	  break;
 	case 4:
@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
 	  perPixelError = atof(argv[4]);
       globalError   = atof(argv[5]);
 	  break;
-	default:
+    default:
       std::cerr << "Usage: ./HW1 input_file [output_filename] [reference_filename] [perPixelError] [globalError]" << std::endl;
       exit(1);
   }
@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
   postProcess(reference_file, h_greyImage);
 
   //generateReferenceImage(input_file, reference_file);
-  compareImages(reference_file, output_file, useEpsCheck, perPixelError, 
+  compareImages(reference_file, output_file, useEpsCheck, perPixelError,
                 globalError);
 
   cleanup();
