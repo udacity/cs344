@@ -40,7 +40,7 @@ int main(int argc,char **argv)
            NUM_THREADS, NUM_THREADS / BLOCK_WIDTH, ARRAY_SIZE);
 
     // declare and allocate host memory
-    int h_array[ARRAY_SIZE];
+    int *h_array = new int[ARRAY_SIZE];
     const int ARRAY_BYTES = ARRAY_SIZE * sizeof(int);
  
     // declare, allocate, and zero out GPU memory
