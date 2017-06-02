@@ -21,7 +21,6 @@ if(CUDA_FOUND)
   # to make sure more people can easily run class code without knowing 
   # about this compiler argument
   set(CUDA_NVCC_FLAGS "
-  -ccbin /usr/bin/clang; 
   -gencode;arch=compute_30,code=sm_30;  
   -gencode;arch=compute_35,code=sm_35;
   -gencode;arch=compute_35,code=compute_35;
@@ -32,6 +31,7 @@ if(CUDA_FOUND)
 
   # add -Wextra compiler flag for gcc compilations
   if (UNIX)
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-ccbin /usr/bin/clang")
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-Xcompiler -Wextra")
     set(CMAKE_CXX_FLAGS "-stdlib=libstdc++")
   endif (UNIX)
