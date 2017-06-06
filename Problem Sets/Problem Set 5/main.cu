@@ -5,6 +5,7 @@
 #include "utils.h"
 #include "timer.h"
 #include <cstdio>
+#include <algorithm>
 #if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
 #include <Windows.h>
 #else
@@ -51,7 +52,7 @@ int main(void)
 
   thrust::minstd_rand rng;
 
-  thrust::random::experimental::normal_distribution<float> normalDist((float)mean, stddev);
+  thrust::random::normal_distribution<float> normalDist((float)mean, stddev);
 
   // Generate the random values
   for (size_t i = 0; i < numElems; ++i) {
