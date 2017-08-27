@@ -22,3 +22,9 @@
 build
 bin
 
+# Visual Studio Project stuff
+*.sln
+*.vcxproj
+*.deps
+*.db
+Debug/
