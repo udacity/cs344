@@ -27,4 +27,6 @@ bin
 *.vcxproj
 *.deps
 *.db
+*.suo
+*.pdb
 Debug/
