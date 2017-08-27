@@ -55,7 +55,7 @@ void rgba_to_greyscale(const uchar4* const rgbaImage,
   unsigned char g = rgbaImage[pixel].y;
   unsigned char b = rgbaImage[pixel].z;
 
-  greyImage[pixel] = .299f * r + .587f * g + .114f * b
+  greyImage[pixel] = .299f * r + .587f * g + .114f * b;
 }
 
 void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, uchar4 * const d_rgbaImage,
