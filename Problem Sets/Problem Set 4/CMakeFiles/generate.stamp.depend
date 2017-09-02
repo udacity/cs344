@@ -1,0 +1,8 @@
+# CMake generation dependency list for this directory.
+D:/Libraries/learnstuff/learn_parallel/cs344/Problem Sets/Problem Set 4/CMakeLists.txt
+D:/Libraries/learnstuff/learn_parallel/cs344/Problem Sets/Problem Set 4/CMakeFiles/HW4.dir/HW4_generated_HW4.cu.obj.depend
+C:/Program Files/CMake/share/cmake-3.9/Modules/FindCUDA/run_nvcc.cmake
+D:/Libraries/learnstuff/learn_parallel/cs344/Problem Sets/Problem Set 4/CMakeFiles/HW4.dir/HW4_generated_student_func.cu.obj.depend
+C:/Program Files/CMake/share/cmake-3.9/Modules/FindCUDA/run_nvcc.cmake
+D:/Libraries/learnstuff/learn_parallel/cs344/Problem Sets/Problem Set 4/CMakeFiles/HW4.dir//HW4_generated_HW4.cu.obj.cmake.pre-gen
+D:/Libraries/learnstuff/learn_parallel/cs344/Problem Sets/Problem Set 4/CMakeFiles/HW4.dir//HW4_generated_student_func.cu.obj.cmake.pre-gen
