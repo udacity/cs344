@@ -30,3 +30,8 @@ bin
 *.suo
 *.pdb
 Debug/
+
+# CMake stuff
+CMakeFiles/
+
+*.dir/
