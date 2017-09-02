@@ -1,8 +1,0 @@
-D:/Libraries/learnstuff/learn_parallel/cs344/CMakeFiles/ALL_BUILD.dir
-D:/Libraries/learnstuff/learn_parallel/cs344/CMakeFiles/ZERO_CHECK.dir
-D:/Libraries/learnstuff/learn_parallel/cs344/Problem Sets/Problem Set 1/CMakeFiles/HW1.dir
-D:/Libraries/learnstuff/learn_parallel/cs344/Problem Sets/Problem Set 2/CMakeFiles/HW2.dir
-D:/Libraries/learnstuff/learn_parallel/cs344/Problem Sets/Problem Set 3/CMakeFiles/HW3.dir
-D:/Libraries/learnstuff/learn_parallel/cs344/Problem Sets/Problem Set 4/CMakeFiles/HW4.dir
-D:/Libraries/learnstuff/learn_parallel/cs344/Problem Sets/Problem Set 5/CMakeFiles/HW5.dir
-D:/Libraries/learnstuff/learn_parallel/cs344/Problem Sets/Problem Set 6/CMakeFiles/HW6.dir
