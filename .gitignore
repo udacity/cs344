@@ -25,8 +25,22 @@ bin
 # Visual Studio Project stuff
 *.sln
 *.vcxproj
+*.vcxproj.user
+*.vcxproj.filters
 *.deps
 *.db
 *.suo
 *.pdb
 Debug/
+
+# CMake stuff
+CMakeFiles
+
+HW1.dir
+HW2.dir
+HW3.dir
+HW4.dir
+HW5.dir
+HW6.dir
+
+*.cmake

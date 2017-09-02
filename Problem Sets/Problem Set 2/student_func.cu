@@ -242,7 +242,7 @@ void allocateMemoryAndCopyToGPU(const size_t numRowsImage, const size_t numColsI
 
 	//Allocate memory for the filter on the GPU
 	checkCudaErrors(cudaMalloc(&d_filter, sizeof(float) * filterWidth * filterWidth)); //the filter is a square
-																					   
+
 	//Copy the filter on the host (h_filter) to the memory you just allocated
 	//on the GPU.  cudaMemcpy(dst, src, numBytes, cudaMemcpyHostToDevice);
 	checkCudaErrors(cudaMemcpy(d_filter, h_filter, sizeof(float) * filterWidth * filterWidth, cudaMemcpyHostToDevice));
@@ -297,8 +297,8 @@ void your_gaussian_blur(const uchar4 * const h_inputImageRGBA, uchar4 * const d_
 //Free all the memory that we allocated
 //TODO: make sure you free any arrays that you allocated
 void cleanup() {
-	checkCudaErrors(cudaFree(d_red));
-	checkCudaErrors(cudaFree(d_green));
-	checkCudaErrors(cudaFree(d_blue));
-	checkCudaErrors(cudaFree(d_filter));
+  checkCudaErrors(cudaFree(d_red));
+  checkCudaErrors(cudaFree(d_green));
+  checkCudaErrors(cudaFree(d_blue));
+  checkCudaErrors(cudaFree(d_filter));
 }
