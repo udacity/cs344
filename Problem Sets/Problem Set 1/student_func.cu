@@ -35,8 +35,10 @@
 
 // This is used for Quadro P4000. 
 // In total, a 2D block has 32 * 32 = 1024 threads, 
-// the maximum on a P4000. 
-int BLOCK_DIM = 32; 
+// the maximum on a P4000.
+// Somehow 16 x 16 block size performs better than
+// 32 x 32 block size. 
+int BLOCK_DIM = 16; 
 
 __global__
 void rgba_to_greyscale(const uchar4* const rgbaImage,
