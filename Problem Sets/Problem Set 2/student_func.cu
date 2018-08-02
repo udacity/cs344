@@ -101,6 +101,7 @@
 //****************************************************************************
 
 #include "utils.h"
+#include "stdio.h"
 
 __global__
 void gaussian_blur(const unsigned char* const inputChannel,
@@ -121,6 +122,16 @@ void gaussian_blur(const unsigned char* const inputChannel,
   const int2 thread_2D_pos = make_int2( blockIdx.x * blockDim.x + threadIdx.x,
                                         blockIdx.y * blockDim.y + threadIdx.y);
 
+  // optimization with shared memory
+  // filterWidth is 9 in this example, so it fits in the shared
+  // memory (size of 49152 bytes for P4000). 
+  extern __shared__ float s_filter[]; 
+  if (threadIdx.x < filterWidth && threadIdx.y < filterWidth) {
+	  int idx = threadIdx.y * filterWidth + threadIdx.x; 
+	  s_filter[idx] = filter[idx]; 
+  }
+  __syncthreads(); 
+
   //make sure we don't try and access memory outside the image
   //by having any threads mapped there return early
   if (thread_2D_pos.x >= numCols || thread_2D_pos.y >= numRows)
@@ -140,7 +151,7 @@ void gaussian_blur(const unsigned char* const inputChannel,
 
 		int filterOffset = (filter_r + filterWidth/2) * filterWidth
 		                 + filter_c + filterWidth/2; 
-		float filterValue = filter[filterOffset]; 
+		float filterValue = s_filter[filterOffset]; 
 		result += imageValue * filterValue; 
 	}
   }
@@ -273,11 +284,15 @@ void your_gaussian_blur(const uchar4 * const h_inputImageRGBA, uchar4 * const d_
   cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
 
   //Call your convolution kernel here 3 times, once for each color channel.
-  gaussian_blur<<<gridSize, blockSize>>>(d_red, d_redBlurred, numRows, numCols,
+  int sharedMemSize = sizeof(float) * filterWidth * filterWidth; 
+  gaussian_blur<<<gridSize, blockSize, sharedMemSize>>>(d_red, d_redBlurred, 
+		                                 numRows, numCols,
 		                                 d_filter, filterWidth); 
-  gaussian_blur<<<gridSize, blockSize>>>(d_green, d_greenBlurred, numRows, numCols,
+  gaussian_blur<<<gridSize, blockSize, sharedMemSize>>>(d_green, d_greenBlurred, 
+		                                 numRows, numCols,
 		                                 d_filter, filterWidth); 
-  gaussian_blur<<<gridSize, blockSize>>>(d_blue, d_blueBlurred, numRows, numCols,
+  gaussian_blur<<<gridSize, blockSize, sharedMemSize>>>(d_blue, d_blueBlurred, 
+		                                 numRows, numCols,
 		                                 d_filter, filterWidth); 
 
   // Again, call cudaDeviceSynchronize(), then call checkCudaErrors() immediately after
