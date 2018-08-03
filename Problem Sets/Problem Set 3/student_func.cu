@@ -86,6 +86,17 @@
 
 #define THREADS_PER_BLOCK 1024
 
+// utility for debugging
+__global__ void printIntArray(int *d_array, int size) 
+{
+	if (threadIdx.x != 0) return; 
+
+	for (int i = 0; i < size; i++)
+	{
+		printf("%d\t:\t%d\n", i, d_array[i]); 
+	}
+}
+
 // This function assumes that the blocks 
 // and the grids are 1-D and 
 // blockDim.x is a power of 2. 
@@ -216,6 +227,17 @@ float reduce_extrema(const float* const d_in, const size_t size, int optn) {
 	return h_result; 
 }
 
+__global__ void simple_hdr_histo(int *d_bins, const float *d_in, 
+		                         const int numBins, 
+		                         float min, float range) 
+{
+	int myId = threadIdx.x + blockDim.x * blockIdx.x; 
+	int myItem = d_in[myId]; 
+	int myBin = (myItem - min) / range * numBins; 
+	atomicAdd(&(d_bins[myBin]), 1); 
+}
+
+
 void your_histogram_and_prefixsum(const float* const d_logLuminance,
                                   unsigned int* const d_cdf,
                                   float &min_logLum,
@@ -238,37 +260,26 @@ void your_histogram_and_prefixsum(const float* const d_logLuminance,
   // d_logLuninance is more like a 1-d structure. So we flatten everything. 
   // int threadsPerBlock = 1024; 
   size_t size = numRows * numCols;
-  
-  printf("total size: %lu\n", size); 
 
   // Step 1 compute the minimum and maximum. 
-  float *h_logLuminance = (float *)malloc(sizeof(float) * size); 
-  cudaMemcpy(h_logLuminance, d_logLuminance, sizeof(float) * size, 
-		     cudaMemcpyDeviceToHost);  
-  
-  float real_max, real_min; 
-  real_max = FLT_MIN; 
-  real_min = FLT_MAX;
-  size_t max_idx, min_idx; 
-  max_idx = 0; 
-  min_idx = 0;  
-  for (size_t i = 0; i < size; i++) {
-	  if (h_logLuminance[i] >= real_max)
-		  max_idx = i; 
-	  real_max = max(real_max, h_logLuminance[i]); 
-	  if (h_logLuminance[i] <= real_max)
-		  min_idx = i; 
-	  real_min = min(real_min, h_logLuminance[i]); 
-  }
-
-  printf("ref max: %f at %lu\n", real_max, max_idx); 
-  printf("ref min: %f at %lu\n", real_min, min_idx); 
   
   float max = reduce_extrema(d_logLuminance, size, 1);
   float min = reduce_extrema(d_logLuminance, size, 0);  
-  printf("testing max: %f\n", max); 
-  printf("testing min: %f\n", min); 
 
   // Step 2 compute the difference to find the range
-  float range = max - min; 
+  float range = max - min;
+
+  // Step 3 generate histogram. 
+  int numThreads = THREADS_PER_BLOCK; 
+  int numBlocks = (size + numThreads - 1) / numThreads; 
+  int* d_bins; 
+  checkCudaErrors(cudaMalloc((void **)&d_bins, sizeof(int) * numBins));
+  cudaMemset(d_bins, 0, sizeof(int) * numBins); 
+  simple_hdr_histo<<<numBlocks, numThreads>>>(d_bins, d_logLuminance, numBins, 
+		                                      min, range);
+
+  // Step 4 the exclusive scan - assume numBins is a power of 2. 
+   
+  // Cleaning up
+  checkCudaErrors(cudaFree(d_bins)); 
 }
