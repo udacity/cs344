@@ -80,6 +80,141 @@
 */
 
 #include "utils.h"
+#include "float.h"
+
+#include "stdio.h"
+
+#define THREADS_PER_BLOCK 1024
+
+// This function assumes that the blocks 
+// and the grids are 1-D and 
+// blockDim.x is a power of 2. 
+__global__ void g_reduce_max(float* d_out, 
+		                   const float* const d_in, 
+		                   const size_t size) 
+{
+	extern __shared__ float sdata[]; 
+
+	int myId = blockDim.x * blockIdx.x + threadIdx.x; 
+	int tid = threadIdx.x; 
+
+	float value = (myId < size)? d_in[myId] : FLT_MIN; 
+    sdata[tid] = value; 	
+	__syncthreads();
+
+	for (unsigned int s = blockDim.x / 2; s > 0; s >>= 1) 
+	{   
+		if (tid < s) {
+			sdata[tid] = max(sdata[tid], sdata[tid + s]); 
+		}
+
+		__syncthreads(); 
+	}
+
+	if (tid == 0)
+	{
+		d_out[blockIdx.x] = sdata[0]; 
+	}
+}
+
+// reduce min. This is essentially a duplicate of g_reduce_max. 
+// Is there a way to pass in a function pointer? 
+__global__ void g_reduce_min(float* d_out, 
+		                     const float* const d_in, 
+		                     const size_t size) 
+{
+	extern __shared__ float sdata[]; 
+
+	int myId = blockDim.x * blockIdx.x + threadIdx.x; 
+	int tid = threadIdx.x; 
+
+	float value = (myId < size)? d_in[myId] : FLT_MAX; 
+    sdata[tid] = value; 	
+	__syncthreads(); 
+
+	for (unsigned int s = blockDim.x / 2; s > 0; s >>= 1) 
+	{
+		if (tid < s) {
+			sdata[tid] = min(sdata[tid], sdata[tid + s]); 
+		}
+		__syncthreads(); 
+	}
+
+	if (tid == 0)
+	{
+		d_out[blockIdx.x] = sdata[0]; 
+	}
+}
+
+// Helper function to find the smallest power of 2 bigger than an 
+// unsigned int input. 
+unsigned nextPow2(unsigned n) {
+	if (!(n & (n - 1))) return n; 
+	unsigned count = 0; 
+	while (n != 0) 
+	{
+		n >>= 1; 
+        count++; 
+	}
+
+	return 1 << count; 
+}
+
+// optn == 0 min
+// optn != 0 max
+// function assumes size <= 2^20
+float reduce_extrema(const float* const d_in, const size_t size, int optn) {
+	unsigned threadsPerBlock = THREADS_PER_BLOCK; 
+	unsigned numGrids = (size + threadsPerBlock - 1) / threadsPerBlock; 
+	const dim3 blockSize(threadsPerBlock, 1, 1); 
+	const dim3 gridSize(numGrids, 1, 1); 
+
+	float* d_intermediate;
+    float* d_result; 	
+	checkCudaErrors(cudaMalloc((void **) &d_intermediate, 
+				              numGrids * sizeof(float)));
+	checkCudaErrors(cudaMalloc((void **) &d_result, 
+				              sizeof(float)));
+    
+	size_t sharedMemSize = threadsPerBlock * sizeof(float); 
+
+	if (optn == 0) 
+	{
+    	g_reduce_min<<<gridSize, blockSize, sharedMemSize>>>(d_intermediate, 
+				                                             d_in, size);
+	} else 
+	{
+    	g_reduce_max<<<gridSize, blockSize, sharedMemSize>>>(d_intermediate, 
+				                                             d_in, size);
+	}
+
+
+	// call g_reduce a second time to process the results from 
+	// each block of the previous call.
+    unsigned paddedNumThreads = nextPow2(numGrids); 	
+	sharedMemSize = paddedNumThreads * sizeof(float); 
+    
+	if (optn == 0) 
+	{
+    	g_reduce_min<<<1, paddedNumThreads, sharedMemSize>>>(d_result, 
+				                                             d_intermediate, 
+				                                             numGrids); 
+	} else 
+	{
+    	g_reduce_max<<<1, paddedNumThreads, sharedMemSize>>>(d_result, 
+				                                             d_intermediate, 
+				                                             numGrids); 
+	}
+
+	float h_result; 
+	checkCudaErrors(cudaMemcpy(&h_result, d_result, sizeof(float), 
+				              cudaMemcpyDeviceToHost)); 
+
+	checkCudaErrors(cudaFree(d_intermediate)); 
+	checkCudaErrors(cudaFree(d_result)); 
+
+	return h_result; 
+}
 
 void your_histogram_and_prefixsum(const float* const d_logLuminance,
                                   unsigned int* const d_cdf,
@@ -100,5 +235,40 @@ void your_histogram_and_prefixsum(const float* const d_logLuminance,
        the cumulative distribution of luminance values (this should go in the
        incoming d_cdf pointer which already has been allocated for you)       */
 
+  // d_logLuninance is more like a 1-d structure. So we flatten everything. 
+  // int threadsPerBlock = 1024; 
+  size_t size = numRows * numCols;
+  
+  printf("total size: %lu\n", size); 
 
+  // Step 1 compute the minimum and maximum. 
+  float *h_logLuminance = (float *)malloc(sizeof(float) * size); 
+  cudaMemcpy(h_logLuminance, d_logLuminance, sizeof(float) * size, 
+		     cudaMemcpyDeviceToHost);  
+  
+  float real_max, real_min; 
+  real_max = FLT_MIN; 
+  real_min = FLT_MAX;
+  size_t max_idx, min_idx; 
+  max_idx = 0; 
+  min_idx = 0;  
+  for (size_t i = 0; i < size; i++) {
+	  if (h_logLuminance[i] >= real_max)
+		  max_idx = i; 
+	  real_max = max(real_max, h_logLuminance[i]); 
+	  if (h_logLuminance[i] <= real_max)
+		  min_idx = i; 
+	  real_min = min(real_min, h_logLuminance[i]); 
+  }
+
+  printf("ref max: %f at %lu\n", real_max, max_idx); 
+  printf("ref min: %f at %lu\n", real_min, min_idx); 
+  
+  float max = reduce_extrema(d_logLuminance, size, 1);
+  float min = reduce_extrema(d_logLuminance, size, 0);  
+  printf("testing max: %f\n", max); 
+  printf("testing min: %f\n", min); 
+
+  // Step 2 compute the difference to find the range
+  float range = max - min; 
 }
