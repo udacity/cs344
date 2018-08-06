@@ -92,8 +92,19 @@ __global__ void printIntArray(int *d_array, int size)
 	if (threadIdx.x != 0) return; 
 
 	for (int i = 0; i < size; i++)
-	{
+	{   
 		printf("%d\t:\t%d\n", i, d_array[i]); 
+	}
+}
+
+__global__ void printUnsignedIntArray(unsigned int *d_array, int size) 
+{
+	if (threadIdx.x != 0) return; 
+
+	for (int i = 0; i < size; i++)
+	{
+		if (d_array[i] != 0)
+			printf("%d\t:\t%u\n", i, d_array[i]); 
 	}
 }
 
@@ -227,16 +238,83 @@ float reduce_extrema(const float* const d_in, const size_t size, int optn) {
 	return h_result; 
 }
 
-__global__ void simple_hdr_histo(int *d_bins, const float *d_in, 
+__global__ void simple_hdr_histo(unsigned int *d_bins, const float *d_in, 
 		                         const int numBins, 
-		                         float min, float range) 
+		                         float min_val, float range) 
 {
 	int myId = threadIdx.x + blockDim.x * blockIdx.x; 
-	int myItem = d_in[myId]; 
-	int myBin = (myItem - min) / range * numBins; 
+	float myItem = d_in[myId]; 
+	unsigned int myBin = min((unsigned int)(numBins - 1), 
+			                 (unsigned int)((myItem - min_val) / range * numBins)); 
 	atomicAdd(&(d_bins[myBin]), 1); 
 }
 
+// Simple implementation of Blelloch Scan. 
+// This function assumes the number of blocks is 1. 
+// In another word, gridDim.x == 1
+// Addtionally, it assumes the number of threads per block
+// is a power of 2. 
+// The shared data required is of size sizeof(int) * blockDim.x . 
+__global__ void excl_prefix_sum(unsigned int* const d_cdf, 
+		                        const unsigned int* const d_bins, 
+		                        const size_t size) 
+{
+	extern __shared__ unsigned int idata[];
+
+    // because blockIdx.x == 0, we do not need blockDim offset. 
+	int tid = threadIdx.x; 	
+
+	idata[tid] = (tid < size)? d_bins[tid] : 0;
+    __syncthreads(); 
+    
+	// summing up
+    for (unsigned int s = 1; s < blockDim.x; s <<= 1)
+	{
+		unsigned int temp = 0; 
+		if ((tid + 1) % (2 * s) == 0)
+			temp = idata[tid - s]; 
+		__syncthreads();
+
+		if ((tid + 1) % (2 * s) == 0)
+			idata[tid] += temp; 
+		__syncthreads(); 
+	}	
+	
+	__syncthreads(); 
+	// set max idx to identity
+	if (tid == blockDim.x - 1) 
+	{
+		idata[tid] = 0;
+	}
+
+	__syncthreads(); 
+
+	// downward sweep
+	for (unsigned int s = blockDim.x / 2; s > 0; s >>= 1)
+	{
+		int temp1 = 0; 
+		int temp2 = 0;
+
+		if ((tid + 1) % (2 * s) == 0)
+		{
+			temp1 = idata[tid]; 
+			temp2 = idata[tid - s]; 
+		}
+		__syncthreads(); 
+
+		if ((tid + 1) % (2 * s) == 0)
+		{
+			idata[tid] += temp2; 
+			idata[tid - s] = temp1; 
+		}
+		__syncthreads(); 
+	}
+
+	if (tid < size)
+	{
+		d_cdf[tid] = idata[tid]; 
+	}
+}
 
 void your_histogram_and_prefixsum(const float* const d_logLuminance,
                                   unsigned int* const d_cdf,
@@ -246,7 +324,6 @@ void your_histogram_and_prefixsum(const float* const d_logLuminance,
                                   const size_t numCols,
                                   const size_t numBins)
 {
-  //TODO
   /*Here are the steps you need to implement
     1) find the minimum and maximum value in the input logLuminance channel
        store in min_logLum and max_logLum
@@ -263,23 +340,28 @@ void your_histogram_and_prefixsum(const float* const d_logLuminance,
 
   // Step 1 compute the minimum and maximum. 
   
-  float max = reduce_extrema(d_logLuminance, size, 1);
-  float min = reduce_extrema(d_logLuminance, size, 0);  
+  float maxLum = reduce_extrema(d_logLuminance, size, 1);
+  float minLum = reduce_extrema(d_logLuminance, size, 0);  
+
+  printf("GPU min: %f\n", minLum); 
+  printf("GPU max: %f\n", maxLum); 
 
   // Step 2 compute the difference to find the range
-  float range = max - min;
+  float range = maxLum - minLum;
 
   // Step 3 generate histogram. 
   int numThreads = THREADS_PER_BLOCK; 
   int numBlocks = (size + numThreads - 1) / numThreads; 
-  int* d_bins; 
-  checkCudaErrors(cudaMalloc((void **)&d_bins, sizeof(int) * numBins));
-  cudaMemset(d_bins, 0, sizeof(int) * numBins); 
+  unsigned int* d_bins; 
+  checkCudaErrors(cudaMalloc((void **)&d_bins, sizeof(unsigned int) * numBins));
+  cudaMemset(d_bins, 0, sizeof(unsigned int) * numBins); 
   simple_hdr_histo<<<numBlocks, numThreads>>>(d_bins, d_logLuminance, numBins, 
-		                                      min, range);
+		                                      minLum, range);
 
-  // Step 4 the exclusive scan - assume numBins is a power of 2. 
-   
+  // Step 4 the exclusive scan - assume numBins is a power of 2.
+  excl_prefix_sum<<<1, numBins, sizeof(unsigned int) * numBins>>>(d_cdf, 
+    	                                                          d_bins, 
+    															  numBins); 
   // Cleaning up
   checkCudaErrors(cudaFree(d_bins)); 
 }
