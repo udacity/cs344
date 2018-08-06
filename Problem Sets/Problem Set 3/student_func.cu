@@ -340,14 +340,11 @@ void your_histogram_and_prefixsum(const float* const d_logLuminance,
 
   // Step 1 compute the minimum and maximum. 
   
-  float maxLum = reduce_extrema(d_logLuminance, size, 1);
-  float minLum = reduce_extrema(d_logLuminance, size, 0);  
-
-  printf("GPU min: %f\n", minLum); 
-  printf("GPU max: %f\n", maxLum); 
+  max_logLum = reduce_extrema(d_logLuminance, size, 1);
+  min_logLum = reduce_extrema(d_logLuminance, size, 0);  
 
   // Step 2 compute the difference to find the range
-  float range = maxLum - minLum;
+  float range = max_logLum - min_logLum;
 
   // Step 3 generate histogram. 
   int numThreads = THREADS_PER_BLOCK; 
@@ -356,7 +353,7 @@ void your_histogram_and_prefixsum(const float* const d_logLuminance,
   checkCudaErrors(cudaMalloc((void **)&d_bins, sizeof(unsigned int) * numBins));
   cudaMemset(d_bins, 0, sizeof(unsigned int) * numBins); 
   simple_hdr_histo<<<numBlocks, numThreads>>>(d_bins, d_logLuminance, numBins, 
-		                                      minLum, range);
+		                                      min_logLum, range);
 
   // Step 4 the exclusive scan - assume numBins is a power of 2.
   excl_prefix_sum<<<1, numBins, sizeof(unsigned int) * numBins>>>(d_cdf, 
