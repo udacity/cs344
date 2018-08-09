@@ -65,16 +65,16 @@ __global__ void naive_scan(unsigned int *const d_out,
     sdata[tid] = (tid >= 1 && tid < size) ? d_in[tid - 1] : 0;
 
     for (unsigned int s = 1; s < blockDim.x; s <<= 1) {
-	unsigned int a = 0;
-	unsigned int b = 0;
-	if (tid >= 2 * s) {
-	    a = sdata[tid - s];
-	    b = sdata[tid];
-	}
-	__syncthreads();
+		unsigned int a = 0;
+		unsigned int b = 0;
+		if (tid >= s) {
+		    a = sdata[tid - s];
+		    b = sdata[tid];
+		}
+		__syncthreads();
 
-	if (tid >= 2 * s) sdata[tid] = a + b;
-	__syncthreads();
+		if (tid >= s) sdata[tid] = a + b;
+		__syncthreads();
     }
 
     if (tid >= size) return;
@@ -129,7 +129,8 @@ void your_sort(unsigned int *const d_inputVals, unsigned int *const d_inputPos,
 	checkCudaErrors(cudaFree(d_test_out)); 
 
 	// end of testing area...
-    const int numBits = 1;
+
+    const int numBits = 4;
     const int numBins = 1 << numBits;
 
     size_t memSize = sizeof(unsigned int) * numElems;
@@ -218,7 +219,18 @@ void your_sort(unsigned int *const d_inputVals, unsigned int *const d_inputPos,
 	/*__global__ void naive_scan(unsigned int* const d_out,
 			     const unsigned int* const d_in,
 			     const size_t size)*/
+	naive_scan<<<1, numBins, numBins * sizeof(unsigned int)>>>(d_binScan, d_binHistogram, numBins); 
 
+	checkCudaErrors(cudaMemcpy(h_binScan, d_binScan, numBins * sizeof(unsigned int),
+				   cudaMemcpyDeviceToHost));
+	// check GPU results
+	for (unsigned int j = 0; j < numBins; j++) {
+	    if (h_binScan[j] != binScan[j]) {
+		printf("GPU scan[%d]:%u\tCPU scan[%d]:%u\n", j,
+		       h_binHistogram[j], j, binHistogram[j]);
+	    }
+	}
+	
 	// Gather everything into the correct location
 	// need to move vals and positions
 	for (unsigned int j = 0; j < numElems; ++j) {
