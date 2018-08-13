@@ -63,6 +63,7 @@ __global__ void naive_scan(unsigned int *const d_out,
     extern __shared__ unsigned int sdata[];
     int tid = threadIdx.x;
     sdata[tid] = (tid >= 1 && tid < size) ? d_in[tid - 1] : 0;
+	__syncthreads(); 
 
     for (unsigned int s = 1; s < blockDim.x; s <<= 1) {
         unsigned int a = 0;
