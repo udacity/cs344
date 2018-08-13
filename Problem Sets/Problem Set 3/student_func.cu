@@ -80,6 +80,241 @@
 */
 
 #include "utils.h"
+#include "float.h"
+
+#include "stdio.h"
+
+#define THREADS_PER_BLOCK 1024
+
+// utility for debugging
+__global__ void printIntArray(int *d_array, int size) 
+{
+	if (threadIdx.x != 0) return; 
+
+	for (int i = 0; i < size; i++)
+	{   
+		printf("%d\t:\t%d\n", i, d_array[i]); 
+	}
+}
+
+__global__ void printUnsignedIntArray(unsigned int *d_array, int size) 
+{
+	if (threadIdx.x != 0) return; 
+
+	for (int i = 0; i < size; i++)
+	{
+		if (d_array[i] != 0)
+			printf("%d\t:\t%u\n", i, d_array[i]); 
+	}
+}
+
+// This function assumes that the blocks 
+// and the grids are 1-D and 
+// blockDim.x is a power of 2. 
+__global__ void g_reduce_max(float* d_out, 
+		                   const float* const d_in, 
+		                   const size_t size) 
+{
+	extern __shared__ float sdata[]; 
+
+	int myId = blockDim.x * blockIdx.x + threadIdx.x; 
+	int tid = threadIdx.x; 
+
+	float value = (myId < size)? d_in[myId] : FLT_MIN; 
+    sdata[tid] = value; 	
+	__syncthreads();
+
+	for (unsigned int s = blockDim.x / 2; s > 0; s >>= 1) 
+	{   
+		if (tid < s) {
+			sdata[tid] = max(sdata[tid], sdata[tid + s]); 
+		}
+
+		__syncthreads(); 
+	}
+
+	if (tid == 0)
+	{
+		d_out[blockIdx.x] = sdata[0]; 
+	}
+}
+
+// reduce min. This is essentially a duplicate of g_reduce_max. 
+// Is there a way to pass in a function pointer? 
+__global__ void g_reduce_min(float* d_out, 
+		                     const float* const d_in, 
+		                     const size_t size) 
+{
+	extern __shared__ float sdata[]; 
+
+	int myId = blockDim.x * blockIdx.x + threadIdx.x; 
+	int tid = threadIdx.x; 
+
+	float value = (myId < size)? d_in[myId] : FLT_MAX; 
+    sdata[tid] = value; 	
+	__syncthreads(); 
+
+	for (unsigned int s = blockDim.x / 2; s > 0; s >>= 1) 
+	{
+		if (tid < s) {
+			sdata[tid] = min(sdata[tid], sdata[tid + s]); 
+		}
+		__syncthreads(); 
+	}
+
+	if (tid == 0)
+	{
+		d_out[blockIdx.x] = sdata[0]; 
+	}
+}
+
+// Helper function to find the smallest power of 2 bigger than an 
+// unsigned int input. 
+unsigned nextPow2(unsigned n) {
+	if (!(n & (n - 1))) return n; 
+	unsigned count = 0; 
+	while (n != 0) 
+	{
+		n >>= 1; 
+        count++; 
+	}
+
+	return 1 << count; 
+}
+
+// optn == 0 min
+// optn != 0 max
+// function assumes size <= 2^20
+float reduce_extrema(const float* const d_in, const size_t size, int optn) {
+	unsigned threadsPerBlock = THREADS_PER_BLOCK; 
+	unsigned numGrids = (size + threadsPerBlock - 1) / threadsPerBlock; 
+	const dim3 blockSize(threadsPerBlock, 1, 1); 
+	const dim3 gridSize(numGrids, 1, 1); 
+
+	float* d_intermediate;
+    float* d_result; 	
+	checkCudaErrors(cudaMalloc((void **) &d_intermediate, 
+				              numGrids * sizeof(float)));
+	checkCudaErrors(cudaMalloc((void **) &d_result, 
+				              sizeof(float)));
+    
+	size_t sharedMemSize = threadsPerBlock * sizeof(float); 
+
+	if (optn == 0) 
+	{
+    	g_reduce_min<<<gridSize, blockSize, sharedMemSize>>>(d_intermediate, 
+				                                             d_in, size);
+	} else 
+	{
+    	g_reduce_max<<<gridSize, blockSize, sharedMemSize>>>(d_intermediate, 
+				                                             d_in, size);
+	}
+
+
+	// call g_reduce a second time to process the results from 
+	// each block of the previous call.
+    unsigned paddedNumThreads = nextPow2(numGrids); 	
+	sharedMemSize = paddedNumThreads * sizeof(float); 
+    
+	if (optn == 0) 
+	{
+    	g_reduce_min<<<1, paddedNumThreads, sharedMemSize>>>(d_result, 
+				                                             d_intermediate, 
+				                                             numGrids); 
+	} else 
+	{
+    	g_reduce_max<<<1, paddedNumThreads, sharedMemSize>>>(d_result, 
+				                                             d_intermediate, 
+				                                             numGrids); 
+	}
+
+	float h_result; 
+	checkCudaErrors(cudaMemcpy(&h_result, d_result, sizeof(float), 
+				              cudaMemcpyDeviceToHost)); 
+
+	checkCudaErrors(cudaFree(d_intermediate)); 
+	checkCudaErrors(cudaFree(d_result)); 
+
+	return h_result; 
+}
+
+__global__ void simple_hdr_histo(unsigned int *d_bins, const float *d_in, 
+		                         const int numBins, 
+		                         float min_val, float range) 
+{
+	int myId = threadIdx.x + blockDim.x * blockIdx.x; 
+	float myItem = d_in[myId]; 
+	unsigned int myBin = min((unsigned int)(numBins - 1), 
+			                 (unsigned int)((myItem - min_val) / range * numBins)); 
+	atomicAdd(&(d_bins[myBin]), 1); 
+}
+
+// Simple implementation of Blelloch Scan. 
+// This function assumes the number of blocks is 1. 
+// In another word, gridDim.x == 1
+// Addtionally, it assumes the number of threads per block
+// is a power of 2. 
+// The shared data required is of size sizeof(int) * blockDim.x . 
+__global__ void excl_prefix_sum(unsigned int* const d_cdf, 
+		                        const unsigned int* const d_bins, 
+		                        const size_t size) 
+{
+	extern __shared__ unsigned int idata[];
+
+    // because blockIdx.x == 0, we do not need blockDim offset. 
+	int tid = threadIdx.x; 	
+
+	idata[tid] = (tid < size)? d_bins[tid] : 0;
+    __syncthreads(); 
+    
+	// summing up
+    for (unsigned int s = 1; s < blockDim.x; s <<= 1)
+	{
+		unsigned int temp = 0; 
+		if ((tid + 1) % (2 * s) == 0)
+			temp = idata[tid - s]; 
+		__syncthreads();
+
+		if ((tid + 1) % (2 * s) == 0)
+			idata[tid] += temp; 
+		__syncthreads(); 
+	}	
+	
+	__syncthreads(); 
+	// set max idx to identity
+	if (tid == blockDim.x - 1) 
+	{
+		idata[tid] = 0;
+	}
+
+	__syncthreads(); 
+
+	// downward sweep
+	for (unsigned int s = blockDim.x / 2; s > 0; s >>= 1)
+	{
+		int temp1 = 0; 
+		int temp2 = 0;
+
+		if ((tid + 1) % (2 * s) == 0)
+		{
+			temp1 = idata[tid]; 
+			temp2 = idata[tid - s]; 
+		}
+		__syncthreads(); 
+
+		if ((tid + 1) % (2 * s) == 0)
+		{
+			idata[tid] += temp2; 
+			idata[tid - s] = temp1; 
+		}
+		__syncthreads(); 
+	}
+
+	if (tid < size)
+	{
+		d_cdf[tid] = idata[tid]; 
+	}
+}
 
 void your_histogram_and_prefixsum(const float* const d_logLuminance,
                                   unsigned int* const d_cdf,
@@ -89,7 +324,6 @@ void your_histogram_and_prefixsum(const float* const d_logLuminance,
                                   const size_t numCols,
                                   const size_t numBins)
 {
-  //TODO
   /*Here are the steps you need to implement
     1) find the minimum and maximum value in the input logLuminance channel
        store in min_logLum and max_logLum
@@ -100,5 +334,31 @@ void your_histogram_and_prefixsum(const float* const d_logLuminance,
        the cumulative distribution of luminance values (this should go in the
        incoming d_cdf pointer which already has been allocated for you)       */
 
+  // d_logLuninance is more like a 1-d structure. So we flatten everything. 
+  // int threadsPerBlock = 1024; 
+  size_t size = numRows * numCols;
 
+  // Step 1 compute the minimum and maximum. 
+  
+  max_logLum = reduce_extrema(d_logLuminance, size, 1);
+  min_logLum = reduce_extrema(d_logLuminance, size, 0);  
+
+  // Step 2 compute the difference to find the range
+  float range = max_logLum - min_logLum;
+
+  // Step 3 generate histogram. 
+  int numThreads = THREADS_PER_BLOCK; 
+  int numBlocks = (size + numThreads - 1) / numThreads; 
+  unsigned int* d_bins; 
+  checkCudaErrors(cudaMalloc((void **)&d_bins, sizeof(unsigned int) * numBins));
+  cudaMemset(d_bins, 0, sizeof(unsigned int) * numBins); 
+  simple_hdr_histo<<<numBlocks, numThreads>>>(d_bins, d_logLuminance, numBins, 
+		                                      min_logLum, range);
+
+  // Step 4 the exclusive scan - assume numBins is a power of 2.
+  excl_prefix_sum<<<1, numBins, sizeof(unsigned int) * numBins>>>(d_cdf, 
+    	                                                          d_bins, 
+    															  numBins); 
+  // Cleaning up
+  checkCudaErrors(cudaFree(d_bins)); 
 }

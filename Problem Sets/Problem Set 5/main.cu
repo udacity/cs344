@@ -51,7 +51,7 @@ int main(void)
 
   thrust::minstd_rand rng;
 
-  thrust::random::experimental::normal_distribution<float> normalDist((float)mean, stddev);
+  thrust::random::normal_distribution<float> normalDist((float)mean, stddev);
 
   // Generate the random values
   for (size_t i = 0; i < numElems; ++i) {
