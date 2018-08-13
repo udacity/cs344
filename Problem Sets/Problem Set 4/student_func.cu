@@ -303,4 +303,6 @@ void your_sort(unsigned int *const d_inputVals, unsigned int *const d_inputPos,
 
 	checkCudaErrors(cudaFree(d_binHistogram));
    	checkCudaErrors(cudaFree(d_binScan)); 
+    checkCudaErrors(cudaFree(d_binFlags)); 
+	checkCudaErrors(cudaFree(d_binAddress)); 
 }
