@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include "reference_calc.h"
 #include "compare.h"
+#include <cassert>
 
 void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, 
                             uchar4 * const d_rgbaImage,
@@ -63,7 +64,7 @@ int main(int argc, char **argv) {
   //call the students' code
   your_rgba_to_greyscale(h_rgbaImage, d_rgbaImage, d_greyImage, numRows(), numCols());
   timer.Stop();
-  cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
+  hipDeviceSynchronize(); assert(hipGetLastError() == 0);
 
   int err = printf("Your code ran in: %f msecs.\n", timer.Elapsed());
 
@@ -74,7 +75,7 @@ int main(int argc, char **argv) {
   }
 
   size_t numPixels = numRows()*numCols();
-  checkCudaErrors(cudaMemcpy(h_greyImage, d_greyImage, sizeof(unsigned char) * numPixels, cudaMemcpyDeviceToHost));
+  assert(hipMemcpy(h_greyImage, d_greyImage, sizeof(unsigned char) * numPixels, hipMemcpyDeviceToHost) == 0);
 
   //check results and output the grey image
   postProcess(output_file, h_greyImage);
