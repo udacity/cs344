@@ -5,6 +5,7 @@
 #include "utils.h"
 #include <string>
 #include <stdio.h>
+#include <cassert>
 
 #include "reference_calc.h"
 #include "compare.h"
@@ -84,7 +85,7 @@ int main(int argc, char **argv) {
   your_gaussian_blur(h_inputImageRGBA, d_inputImageRGBA, d_outputImageRGBA, numRows(), numCols(),
                      d_redBlurred, d_greenBlurred, d_blueBlurred, filterWidth);
   timer.Stop();
-  cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
+  hipDeviceSynchronize(); assert(hipGetLastError() == 0);
   int err = printf("Your code ran in: %f msecs.\n", timer.Elapsed());
 
   if (err < 0) {
@@ -97,7 +98,7 @@ int main(int argc, char **argv) {
 
   size_t numPixels = numRows()*numCols();
   //copy the output back to the host
-  checkCudaErrors(cudaMemcpy(h_outputImageRGBA, d_outputImageRGBA__, sizeof(uchar4) * numPixels, cudaMemcpyDeviceToHost));
+  assert(hipMemcpy(h_outputImageRGBA, d_outputImageRGBA__, sizeof(uchar4) * numPixels, hipMemcpyDeviceToHost) == 0);
 
   postProcess(output_file, h_outputImageRGBA);
 
@@ -112,9 +113,9 @@ int main(int argc, char **argv) {
 
   compareImages(reference_file, output_file, useEpsCheck, perPixelError, globalError);
 
-  checkCudaErrors(cudaFree(d_redBlurred));
-  checkCudaErrors(cudaFree(d_greenBlurred));
-  checkCudaErrors(cudaFree(d_blueBlurred));
+  assert(hipFree(d_redBlurred) == 0);
+  assert(hipFree(d_greenBlurred) == 0);
+  assert(hipFree(d_blueBlurred) == 0);
 
   cleanUp();
 

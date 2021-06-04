@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <cassert>
 // for uchar4 struct
-#include <cuda_runtime.h>
+#include <hip/hip_runtime.h>
 
 void channelConvolution(const unsigned char* const channel,
                         unsigned char* const channelBlurred,
