@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
 						&h_outputVals[0], &h_outputPos[0],
 						numElems);
 
-  //postProcess(valsPtr, posPtr, numElems, reference_file);
+  //postProcess(&h_outputVals[0], &h_outputPos[0], numElems, reference_file);
 
   //compareImages(reference_file, output_file, useEpsCheck, perPixelError, globalError);
 
