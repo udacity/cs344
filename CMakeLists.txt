@@ -21,7 +21,6 @@ if(CUDA_FOUND)
   # to make sure more people can easily run class code without knowing 
   # about this compiler argument
   set(CUDA_NVCC_FLAGS "
-  -ccbin /usr/bin/clang; 
   -gencode;arch=compute_30,code=sm_30;  
   -gencode;arch=compute_35,code=sm_35;
   -gencode;arch=compute_35,code=compute_35;
@@ -32,6 +31,7 @@ if(CUDA_FOUND)
 
   # add -Wextra compiler flag for gcc compilations
   if (UNIX)
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-ccbin /usr/bin/clang")
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-Xcompiler -Wextra")
     set(CMAKE_CXX_FLAGS "-stdlib=libstdc++")
   endif (UNIX)
@@ -39,12 +39,12 @@ if(CUDA_FOUND)
   # add debugging to CUDA NVCC flags.  For NVidia's NSight tools.
   set(CUDA_NVCC_FLAGS_DEBUG ${CUDA_NVCC_FLAGS_DEBUG} "-G")
 
-  add_subdirectory (HW1)
-  add_subdirectory (HW2)
-  add_subdirectory (HW3)
-  add_subdirectory (HW4)
-  add_subdirectory (HW5)
-  add_subdirectory (HW6)
+  add_subdirectory ("Problem Sets/Problem Set 1")
+  add_subdirectory ("Problem Sets/Problem Set 2")
+  add_subdirectory ("Problem Sets/Problem Set 3")
+  add_subdirectory ("Problem Sets/Problem Set 4")
+  add_subdirectory ("Problem Sets/Problem Set 5")
+  add_subdirectory ("Problem Sets/Problem Set 6")
 else(CUDA_FOUND)
   message("CUDA is not installed on this system.")
 endif()
